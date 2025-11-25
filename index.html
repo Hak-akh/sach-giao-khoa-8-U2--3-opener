@@ -11,7 +11,7 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- React & ReactDOM -->
+    <!-- React & ReactDOM (UMD) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     
@@ -45,18 +45,19 @@
         const { useState, useEffect, useRef, useMemo } = React;
 
         // ==========================================
-        // 1. TYPES & ENUMS
+        // 1. TYPES & CONSTANTS (Must be first)
         // ==========================================
-        enum QuestionType {
-            ListenWrite = 'listen-write',
-            Match = 'match',
-            Fill = 'fill',
-            MCQ = 'mcq',
-            ShortAnswer = 'short-answer',
-            Writing = 'writing',
-            Listening = 'listening',
-            SentenceScramble = 'sentence-scramble'
-        }
+        // Converted from enum to const object to prevent ReferenceErrors in standalone script
+        const QuestionType = {
+            ListenWrite: 'listen-write',
+            Match: 'match',
+            Fill: 'fill',
+            MCQ: 'mcq',
+            ShortAnswer: 'short-answer',
+            Writing: 'writing',
+            Listening: 'listening',
+            SentenceScramble: 'sentence-scramble'
+        };
 
         // ==========================================
         // 2. SERVICES (TTS)
@@ -99,7 +100,7 @@
         };
 
         // ==========================================
-        // 3. DATA (UNITS 2 & 3)
+        // 3. DATA (UNITS)
         // ==========================================
         
         // --- UNIT 3 (ENVIRONMENT) ---
@@ -903,6 +904,13 @@
                         else btnClass += "bg-slate-100 text-slate-500 hover:bg-slate-200";
                         return <button key={idx} onClick={() => onSelectQuestion(idx)} className={btnClass}>{idx + 1}</button>;
                     })}
+                </div>
+                
+                <div className="mt-6 space-y-2 text-xs text-slate-500 px-2">
+                    <div className="flex items-center gap-2"><div className="w-3 h-3 bg-teal-600 rounded"></div> Đang chọn</div>
+                    <div className="flex items-center gap-2"><div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div> Đúng</div>
+                    <div className="flex items-center gap-2"><div className="w-3 h-3 bg-red-100 border border-red-300 rounded"></div> Sai</div>
+                    <div className="flex items-center gap-2"><div className="w-3 h-3 bg-blue-50 border border-blue-200 rounded"></div> Đã làm</div>
                 </div>
             </div>
         );
