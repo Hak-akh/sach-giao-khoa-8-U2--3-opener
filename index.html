@@ -918,7 +918,9 @@
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
                     <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg w-full transform transition hover:scale-105 duration-300 relative z-20">
                         <div className="text-6xl mb-6 animate-bounce">{unitIcon}</div>
-                        <h1 className="text-3xl md:text-4xl font-extrabold text-teal-800 mb-4">{unitTitle}</h1>
+                        <h1 className="text-3xl md:text-4xl font-extrabold text-teal-800 mb-4 transition-all duration-300 min-h-[80px] flex items-center justify-center">
+                            {unitTitle}
+                        </h1>
                         <p className="text-slate-500 mb-8 text-lg">Kiểm tra từ vựng, nghe và ngữ pháp của bạn.</p>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nhập tên của bạn..." className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 bg-slate-50 text-lg focus:ring-4 focus:ring-teal-100 focus:border-teal-500 outline-none transition" autoFocus />
