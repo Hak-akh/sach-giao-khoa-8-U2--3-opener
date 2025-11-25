@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Quiz - Environment & Disasters</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+  }
+}
+</script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen selection:bg-teal-100 selection:text-teal-900">
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="typescript,react">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // ==========================================
+        // 1. TYPES & ENUMS
+        // ==========================================
+        enum QuestionType {
+            ListenWrite = 'listen-write',
+            Match = 'match',
+            Fill = 'fill',
+            MCQ = 'mcq',
+            ShortAnswer = 'short-answer',
+            Writing = 'writing',
+            Listening = 'listening',
+            SentenceScramble = 'sentence-scramble'
+        }
+
+        // ==========================================
+        // 2. SERVICES (TTS)
+        // ==========================================
+        let selectedVoice = null;
+
+        const getAvailableVoices = () => {
+            if (!window.speechSynthesis) return [];
+            return window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en'));
+        };
+
+        const setPreferredVoice = (voiceName) => {
+            const voices = getAvailableVoices();
+            const found = voices.find(v => v.name === voiceName);
+            if (found) {
+                selectedVoice = found;
+            }
+        };
+
+        const playTTS = (text) => {
+            if (!window.speechSynthesis) {
+                alert("Trình duyệt của bạn không hỗ trợ đọc văn bản.");
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            } else {
+                const voices = getAvailableVoices();
+                const defaultVoice = voices.find(v => v.name === 'Google US English') || 
+                                     voices.find(v => v.lang === 'en-US') ||
+                                     voices[0];
+                if (defaultVoice) utterance.voice = defaultVoice;
+            }
+            window.speechSynthesis.speak(utterance);
+        };
+
+        // ==========================================
+        // 3. DATA (UNITS 2 & 3)
+        // ==========================================
+        
+        // --- UNIT 3 (ENVIRONMENT) ---
+        const unit3Vocab = [
+            { word: 'sea', ipa: '/siː/', meaning: 'biển', example: 'The sea is becoming polluted.' },
+            { word: 'rainforests', ipa: '/ˈreɪnfɒrɪsts/', meaning: 'rừng nhiệt đới', example: 'Rainforests are disappearing.' },
+            { word: 'rivers', ipa: '/ˈrɪvərz/', meaning: 'sông', example: 'Many rivers dry up in summer.' },
+            { word: 'lakes', ipa: '/leɪks/', meaning: 'hồ', example: 'The lake is full of fish.' },
+            { word: 'air', ipa: '/eə(r)/', meaning: 'không khí', example: 'We need fresh air to breathe.' },
+            { word: 'ice caps', ipa: '/ˈaɪs kæps/', meaning: 'chỏm băng', example: 'Ice caps are melting due to global warming.' },
+            { word: 'become polluted', ipa: '/pəˈluːtɪd/', meaning: 'trở nên ô nhiễm', example: 'The river has become polluted.' },
+            { word: 'dry up', ipa: '/draɪ ʌp/', meaning: 'cạn kiệt / khô cạn', example: 'The stream might dry up soon.' },
+            { word: 'disappear', ipa: '/dɪsəˈpɪə(r)/', meaning: 'biến mất', example: 'Many species will disappear.' },
+            { word: 'melt', ipa: '/melt/', meaning: 'tan chảy', example: 'Ice melts when it is hot.' }
+        ];
+
+        const unit3Questions = [
+            {
+                id: `u3-vocab-write-1`,
+                type: QuestionType.ListenWrite,
+                title: `1. Từ vựng: Nghe và Viết`,
+                prompt: 'Nghe từ vựng, nhìn phiên âm và gõ lại chính xác từ đó.',
+                audioText: 'rainforests',
+                display: '/ˈreɪnfɒrɪsts/',
+                answer: 'rainforests',
+                explanation: `Từ đúng là <b>"rainforests"</b>. Nghĩa tiếng Việt: rừng nhiệt đới.`,
+            },
+            {
+                id: 'u3-vocab-match',
+                type: QuestionType.Match,
+                title: '2. Từ vựng: Nối từ với nghĩa',
+                description: 'Ghép từ vựng tiếng Anh với nghĩa tiếng Việt tương ứng.',
+                explanation: 'Hãy học thuộc bảng từ vựng để làm tốt phần này.',
+                items: [
+                    { id: 'A1', A: 'rainforests', B: 'rừng mưa nhiệt đới' },
+                    { id: 'A2', A: 'dry up', B: 'cạn khô / cạn kiệt' },
+                    { id: 'A3', A: 'melt', B: 'tan chảy' },
+                    { id: 'A4', A: 'become polluted', B: 'trở nên ô nhiễm' },
+                    { id: 'A5', A: 'ice caps', B: 'chỏm băng' },
+                    { id: 'A6', A: 'disappear', B: 'biến mất' },
+                    { id: 'A7', A: 'rivers', B: 'sông' },
+                ],
+            },
+            {
+                id: 'u3-fill-blanks',
+                type: QuestionType.Fill,
+                title: '3. Ngữ cảnh: Điền vào chỗ trống',
+                explanation: 'Dựa vào các cụm từ collocations trong bài học: "rivers dry up", "ice caps melt", "air becomes polluted".',
+                options: ['environment', 'polluted', 'dry up', 'disappear', 'lakes', 'melt'],
+                questions: [
+                    { text: 'The air becomes __ because of smoke from cars and factories.', answer: 'polluted', explanation: 'Không khí trở nên ô nhiễm (polluted) do khói bụi.' },
+                    { text: 'In the dry season, some rivers and lakes __.', answer: 'dry up', explanation: 'Vào mùa khô, sông hồ cạn kiệt (dry up).' },
+                    { text: 'Global warming makes ice caps __.', answer: 'melt', explanation: 'Nóng lên toàn cầu làm chỏm băng tan chảy (melt).' },
+                    { text: 'If we cut down trees, rainforests will __.', answer: 'disappear', explanation: 'Nếu chặt cây, rừng sẽ biến mất (disappear).' },
+                    { text: 'We need to protect our __.', answer: 'environment', explanation: 'Chúng ta cần bảo vệ môi trường (environment).' },
+                ],
+            },
+            {
+                id: 'u3-pronun-1',
+                type: QuestionType.MCQ,
+                title: '4. Ngữ âm: Chọn từ có phát âm khác',
+                prompt: 'Chọn từ có phần gạch chân phát âm khác với các từ còn lại (Phân biệt /aɪ/ và /eɪ/).',
+                audioText: 'ice, dry, lake, die',
+                options: [
+                    { text: 'A. <u>i</u>ce', value: 'ice' },
+                    { text: 'B. dr<u>y</u>', value: 'dry' },
+                    { text: 'C. l<u>a</u>ke', value: 'lake' },
+                    { text: 'D. d<u>ie</u>', value: 'die' },
+                ],
+                answer: 'lake',
+                explanation: '<b>Ice, Dry, Die</b> đều chứa nguyên âm đôi <b>/aɪ/</b>. <br><b>Lake</b> chứa nguyên âm đôi <b>/eɪ/</b>. <br>Đáp án là C.',
+            },
+            {
+                id: 'u3-pronun-2',
+                type: QuestionType.MCQ,
+                title: '5. Ngữ âm: Chọn từ có phát âm khác',
+                prompt: 'Chọn từ có phần gạch chân phát âm khác với các từ còn lại.',
+                audioText: 'rain, save, environment, wild',
+                options: [
+                    { text: 'A. r<u>ai</u>n', value: 'rain' },
+                    { text: 'B. s<u>a</u>ve', value: 'save' },
+                    { text: 'C. env<u>i</u>ronment', value: 'environment' },
+                    { text: 'D. w<u>ai</u>t', value: 'wait' },
+                ],
+                answer: 'environment',
+                explanation: '<b>Rain, Save, Wait</b> đều chứa âm <b>/eɪ/</b>. <br><b>Environment</b> chứa âm <b>/aɪ/</b> (ở âm tiết thứ 2). <br>Đáp án là C.',
+            },
+            {
+                id: 'u3-conditional-1',
+                type: QuestionType.ShortAnswer,
+                title: '6. Ngữ pháp: Câu điều kiện loại 1',
+                prompt: 'Viết tiếp vế sau của câu điều kiện (kết quả).',
+                prefix: 'If ice caps melt, ...',
+                placeholder: 'sea levels will rise',
+                correctAnswer: 'rise',
+                explanation: 'Nếu băng tan, mực nước biển sẽ dâng cao. <br>Gợi ý: "sea levels will rise" hoặc "the sea level will rise".',
+            },
+            {
+                id: 'u3-scramble-1',
+                type: QuestionType.SentenceScramble,
+                title: '7. Sắp xếp câu (Nghe và Xếp)',
+                prompt: 'Nghe và sắp xếp các từ sau thành câu hoàn chỉnh về bảo vệ môi trường.',
+                audioText: 'If we pollute the rivers fish will die',
+                segments: ['the rivers,', 'If', 'fish', 'will die.', 'we pollute'],
+                correctOrder: ['If', 'we pollute', 'the rivers,', 'fish', 'will die.'],
+                explanation: 'Cấu trúc câu điều kiện loại 1: <br><b>If + S + V (hiện tại), S + will + V (nguyên thể).</b><br>Dịch: Nếu chúng ta làm ô nhiễm các dòng sông, cá sẽ chết.',
+            }
+        ];
+
+        // --- UNIT 2 (DISASTERS) ---
+        const unit2Vocab = [
+            { word: 'tsunami', ipa: '/tsuːˈnɑːmi/', meaning: 'sóng thần', example: 'A huge tsunami hit the coast.' },
+            { word: 'earthquake', ipa: '/ˈɜːθkweɪk/', meaning: 'động đất', example: 'The building shook during the earthquake.' },
+            { word: 'landslide', ipa: '/ˈlændslaɪd/', meaning: 'sạt lở đất', example: 'Heavy rain caused a landslide.' },
+            { word: 'flood', ipa: '/flʌd/', meaning: 'lũ lụt', example: 'The flood covered the town in water.' },
+            { word: 'storm', ipa: '/stɔːm/', meaning: 'bão', example: 'The storm destroyed many houses.' },
+            { word: 'volcanic eruption', ipa: '/vɒlˈkænɪk ɪˈrʌpʃn/', meaning: 'phun trào núi lửa', example: 'The volcanic eruption was terrifying.' },
+            { word: 'explosion', ipa: '/ɪkˈspləʊʒn/', meaning: 'vụ nổ', example: 'We heard a loud explosion.' },
+            { word: 'shipwreck', ipa: '/ˈʃɪprek/', meaning: 'đắm tàu', example: 'Divers explored the shipwreck.' },
+            { word: 'crash', ipa: '/kræʃ/', meaning: 'vụ va chạm (xe/máy bay)', example: 'There was a car crash on the road.' },
+            { word: 'terrified', ipa: '/ˈterɪfaɪd/', meaning: 'khiếp sợ', example: 'She was terrified of the storm.' },
+            { word: 'relieved', ipa: '/rɪˈliːvd/', meaning: 'nhẹ nhõm', example: 'I felt relieved when it stopped.' },
+            { word: 'worried', ipa: '/ˈwʌrid/', meaning: 'lo lắng', example: 'He is worried about the future.' }
+        ];
+
+        const unit2Questions = [
+            {
+                id: 'u2-match-disasters',
+                type: QuestionType.Match,
+                title: '1. Vocabulary: Label the pictures',
+                description: 'Nối tên thảm họa với mô tả tương ứng.',
+                explanation: 'Các thảm họa thiên nhiên chính: Earthquake (Động đất), Tsunami (Sóng thần), Flood (Lũ lụt)...',
+                items: [
+                    { id: 'A1', A: 'tsunami', B: 'Sóng thần (Huge waves)' },
+                    { id: 'A2', A: 'earthquake', B: 'Động đất (Ground shaking)' },
+                    { id: 'A3', A: 'landslide', B: 'Sạt lở đất (Earth falling down)' },
+                    { id: 'A4', A: 'flood', B: 'Lũ lụt (Water covering land)' },
+                    { id: 'A5', A: 'storm', B: 'Bão (Strong wind and rain)' },
+                    { id: 'A6', A: 'volcanic eruption', B: 'Phun trào núi lửa' }
+                ]
+            },
+            {
+                id: 'u2-guess-words',
+                type: QuestionType.Fill,
+                title: '2. Vocabulary: Guess the words',
+                explanation: 'Dựa vào gợi ý để đoán từ vựng về tai nạn.',
+                options: ['explosion', 'fire', 'plane crash', 'shipwreck', 'car crash'],
+                questions: [
+                    { text: 'A sudden loud noise → __', answer: 'explosion', explanation: 'Tiếng ồn lớn đột ngột -> Vụ nổ.' },
+                    { text: 'A big accident involving burning in a building → __', answer: 'fire', explanation: 'Tai nạn liên quan đến cháy -> Hỏa hoạn.' },
+                    { text: 'A plane hits the ground → __', answer: 'plane crash', explanation: 'Máy bay đâm xuống đất -> Rơi máy bay.' },
+                    { text: 'A ship sinks → __', answer: 'shipwreck', explanation: 'Tàu chìm -> Đắm tàu.' },
+                    { text: 'A car hits another car → __', answer: 'car crash', explanation: 'Xe hơi đâm nhau -> Tai nạn ô tô.' }
+                ]
+            },
+            {
+                id: 'u2-feelings',
+                type: QuestionType.Fill,
+                title: '3. Vocabulary: Feelings',
+                explanation: 'Điền tính từ chỉ cảm xúc phù hợp.',
+                options: ['terrified', 'relieved', 'worried'],
+                questions: [
+                    { text: 'When the earthquake started, she was very __.', answer: 'terrified', explanation: 'Khi động đất xảy ra -> Rất sợ hãi (terrified).' },
+                    { text: 'He was __ after finding out nobody was hurt.', answer: 'relieved', explanation: 'Biết không ai bị thương -> Nhẹ nhõm (relieved).' },
+                    { text: 'They are __ about life after the flood.', answer: 'worried', explanation: 'Về cuộc sống sau lũ -> Lo lắng (worried).' }
+                ]
+            },
+            {
+                id: 'u2-grammar-mcq',
+                type: QuestionType.MCQ,
+                title: '4. Grammar: Choose the correct answer',
+                prompt: 'Chọn từ vựng đúng ngữ cảnh.',
+                audioText: 'landslide, shipwreck, disaster, crash',
+                options: [
+                    { text: 'A. landslide', value: 'landslide' },
+                    { text: 'B. shipwreck', value: 'shipwreck' },
+                ],
+                questionText: '1. It rained heavily before the ______ hit the town.',
+                answer: 'landslide',
+                explanation: 'Mưa lớn thường gây ra sạt lở đất (landslide), không gây ra đắm tàu trên thị trấn.'
+            },
+            {
+                id: 'u2-grammar-mcq-2',
+                type: QuestionType.MCQ,
+                title: '4b. Grammar: Choose the correct answer',
+                prompt: 'Chọn từ vựng đúng ngữ cảnh.',
+                options: [
+                    { text: 'A. crash', value: 'crash' },
+                    { text: 'B. disaster', value: 'disaster' },
+                ],
+                questionText: '2. Jane saw a car ______ this morning.',
+                answer: 'crash',
+                explanation: 'Car crash: Tai nạn xe hơi.'
+            },
+            {
+                id: 'u2-grammar-mcq-3',
+                type: QuestionType.MCQ,
+                title: '4c. Grammar: Choose the correct answer',
+                prompt: 'Chọn từ vựng đúng ngữ cảnh.',
+                options: [
+                    { text: 'A. eruption', value: 'eruption' },
+                    { text: 'B. explosion', value: 'explosion' },
+                ],
+                questionText: '3. The volcanic ______ destroyed the village.',
+                answer: 'eruption',
+                explanation: 'Volcanic eruption: Phun trào núi lửa.'
+            },
+            {
+                id: 'u2-grammar-mcq-4',
+                type: QuestionType.MCQ,
+                title: '4d. Grammar: Choose the correct answer',
+                prompt: 'Chọn từ vựng đúng ngữ cảnh.',
+                options: [
+                    { text: 'A. earthquake', value: 'earthquake' },
+                    { text: 'B. flood', value: 'flood' },
+                ],
+                questionText: '4. The ______ covered the small town in water.',
+                answer: 'flood',
+                explanation: 'Nước bao phủ thị trấn -> Lũ lụt (flood).'
+            },
+             {
+                id: 'u2-grammar-mcq-5',
+                type: QuestionType.MCQ,
+                title: '4e. Grammar: Choose the correct answer',
+                prompt: 'Chọn từ vựng đúng ngữ cảnh.',
+                options: [
+                    { text: 'A. terrified', value: 'terrified' },
+                    { text: 'B. relieved', value: 'relieved' },
+                ],
+                questionText: '5. We were ______ when the building began to shake.',
+                answer: 'terrified',
+                explanation: 'Tòa nhà rung chuyển -> Sợ hãi (terrified).'
+            },
+            {
+                id: 'u2-grammar-verbs',
+                type: QuestionType.Fill,
+                title: '5. Grammar: Fill in verbs',
+                explanation: 'Điền động từ quá khứ phù hợp.',
+                options: ['killed', 'hit', 'destroyed', 'blew', 'overflowed'],
+                questions: [
+                    { text: 'The shipwreck __ three people.', answer: 'killed', explanation: 'Vụ đắm tàu làm thiệt mạng 3 người.' },
+                    { text: 'When did the storm __ the city?', answer: 'hit', explanation: 'Khi nào cơn bão đổ bộ (hit) thành phố?' },
+                    { text: 'The tsunami __ the roads and buildings.', answer: 'destroyed', explanation: 'Sóng thần phá hủy (destroyed) đường xá.' },
+                    { text: 'The wind __ hard before the storm.', answer: 'blew', explanation: 'Gió thổi mạnh (blew).' },
+                    { text: 'The river __ after a week of heavy rain.', answer: 'overflowed', explanation: 'Sông tràn bờ (overflowed).' }
+                ]
+            },
+            {
+                id: 'u2-word-forms',
+                type: QuestionType.Fill,
+                title: '6. Grammar: Word Forms',
+                explanation: 'Chọn dạng từ đúng (Danh từ/Tính từ/Động từ) cho câu.',
+                options: ['destruction', 'injured', 'explosion', 'erupted', 'relieved', 'terrifying', 'worried'],
+                questions: [
+                    { text: 'The __ from the tsunami was terrible. (DESTROY)', answer: 'destruction', explanation: 'Cần danh từ: Destruction (sự phá hủy).' },
+                    { text: 'The police helped the __ people. (INJURE)', answer: 'injured', explanation: 'Cần tính từ: Injured people (người bị thương).' },
+                    { text: 'They heard a loud __ from the building. (EXPLODE)', answer: 'explosion', explanation: 'Cần danh từ: Explosion (vụ nổ).' },
+                    { text: 'Mount Fuji last __ in 1707. (ERUPT)', answer: 'erupted', explanation: 'Cần động từ quá khứ: Erupted (phun trào).' },
+                    { text: 'She felt __ because no one was injured. (RELIEVE)', answer: 'relieved', explanation: 'Cảm thấy nhẹ nhõm: Relieved.' },
+                    { text: 'The news says a __ storm is coming. (TERRIFY)', answer: 'terrifying', explanation: 'Một cơn bão đáng sợ: Terrifying.' },
+                    { text: 'People are __ about their life. (WORRY)', answer: 'worried', explanation: 'Lo lắng: Worried.' }
+                ]
+            },
+            {
+                id: 'u2-past-story',
+                type: QuestionType.Fill,
+                title: '7. Grammar: Past Simple / Past Continuous Story',
+                explanation: 'Hoàn thành câu chuyện ở thì quá khứ.',
+                options: ['started', 'were running', 'fell', 'opened', 'took'],
+                questions: [
+                    { text: 'David was running in the forest when it __ to rain.', answer: 'started', explanation: 'Hành động cắt ngang (bắt đầu mưa) -> Quá khứ đơn.' },
+                    { text: 'He and his dog __ to the car when the lightning struck.', answer: 'were running', explanation: 'Hành động đang diễn ra -> Quá khứ tiếp diễn.' },
+                    { text: 'David __ to the ground.', answer: 'fell', explanation: 'Hành động ngã xuống -> Quá khứ đơn.' },
+                    { text: 'When he __ his eyes...', answer: 'opened', explanation: 'Mở mắt -> Quá khứ đơn.' },
+                    { text: '...the emergency service __ him to the hospital.', answer: 'took', explanation: 'Đưa đến viện -> Quá khứ đơn.' }
+                ]
+            },
+            {
+                id: 'u2-pronun-1',
+                type: QuestionType.MCQ,
+                title: '8. Pronunciation: Odd one out',
+                prompt: 'Chọn từ có phần gạch chân phát âm khác.',
+                audioText: 'holiday, nothing, stop, volcanic',
+                options: [
+                    { text: 'A. h<u>o</u>liday', value: 'holiday' },
+                    { text: 'B. n<u>o</u>thing', value: 'nothing' }, // /ʌ/
+                    { text: 'C. st<u>o</u>p', value: 'stop' },
+                    { text: 'D. v<u>o</u>lcanic', value: 'volcanic' }
+                ],
+                answer: 'nothing',
+                explanation: 'Nothing (/ʌ/) khác với các từ còn lại (/ɒ/).'
+            },
+            {
+                id: 'u2-pronun-2',
+                type: QuestionType.MCQ,
+                title: '9. Pronunciation: Odd one out',
+                prompt: 'Chọn từ có phần gạch chân phát âm khác.',
+                audioText: 'warm, harm, farm, start',
+                options: [
+                    { text: 'A. w<u>a</u>rm', value: 'warm' }, // /ɔː/
+                    { text: 'B. h<u>a</u>rm', value: 'harm' }, // /ɑː/
+                    { text: 'C. f<u>a</u>rm', value: 'farm' }, // /ɑː/
+                    { text: 'D. st<u>a</u>rt', value: 'start' } // /ɑː/
+                ],
+                answer: 'warm',
+                explanation: 'Warm (/ɔː/) khác với các từ còn lại (/ɑː/).'
+            },
+            {
+                id: 'u2-pronun-ed',
+                type: QuestionType.MCQ,
+                title: '10. Pronunciation: -ed endings',
+                prompt: 'Chọn từ có đuôi -ed phát âm khác.',
+                audioText: 'climbed, destroyed, exploded, injured',
+                options: [
+                    { text: 'A. climb<u>ed</u>', value: 'climbed' }, // /d/
+                    { text: 'B. destroy<u>ed</u>', value: 'destroyed' }, // /d/
+                    { text: 'C. explod<u>ed</u>', value: 'exploded' }, // /id/
+                    { text: 'D. injur<u>ed</u>', value: 'injured' } // /d/
+                ],
+                answer: 'exploded',
+                explanation: 'Exploded (/ɪd/) vì kết thúc bằng /d/, các từ còn lại là /d/.'
+            },
+            {
+                id: 'u2-pronun-ed-2',
+                type: QuestionType.MCQ,
+                title: '11. Pronunciation: -ed endings',
+                prompt: 'Chọn từ có đuôi -ed phát âm khác.',
+                audioText: 'screamed, overflowed, cleaned, crashed',
+                options: [
+                    { text: 'A. scream<u>ed</u>', value: 'screamed' }, // /d/
+                    { text: 'B. overflow<u>ed</u>', value: 'overflowed' }, // /d/
+                    { text: 'C. clean<u>ed</u>', value: 'cleaned' }, // /d/
+                    { text: 'D. crash<u>ed</u>', value: 'crashed' } // /t/
+                ],
+                answer: 'crashed',
+                explanation: 'Crashed (/t/) vì kết thúc bằng /ʃ/, các từ còn lại là /d/.'
+            },
+            {
+                id: 'u2-pronun-ed-3',
+                type: QuestionType.MCQ,
+                title: '12. Pronunciation: -ed endings',
+                prompt: 'Chọn từ có đuôi -ed phát âm khác.',
+                audioText: 'walked, watched, stayed, washed',
+                options: [
+                    { text: 'A. walk<u>ed</u>', value: 'walked' }, // /t/
+                    { text: 'B. watch<u>ed</u>', value: 'watched' }, // /t/
+                    { text: 'C. stay<u>ed</u>', value: 'stayed' }, // /d/
+                    { text: 'D. wash<u>ed</u>', value: 'washed' } // /t/
+                ],
+                answer: 'stayed',
+                explanation: 'Stayed (/d/) vì kết thúc bằng nguyên âm, các từ còn lại là /t/.'
+            },
+            {
+                id: 'u2-listening',
+                type: QuestionType.Fill,
+                title: '13. Listening: Gap Fill',
+                prompt: 'Nghe đoạn hội thoại và điền vào chỗ trống.',
+                audioText: 'I was in the kitchen when I heard a loud noise. It was a plane crash nearby. I looked out and saw smoke and fire everywhere. Luckily, only the pilot got injured. I feel relieved now because I was safe inside.',
+                explanation: 'Nghe kỹ các từ khóa về địa điểm, sự kiện và cảm xúc.',
+                options: ['kitchen', 'plane crash', 'fire', 'The pilot', 'safe'],
+                questions: [
+                    { text: 'Jane heard a loud noise when she was in her __.', answer: 'kitchen', explanation: 'Cô ấy ở trong bếp (kitchen).' },
+                    { text: 'The accident was a __.', answer: 'plane crash', explanation: 'Tai nạn rơi máy bay (plane crash).' },
+                    { text: 'She saw smoke and __.', answer: 'fire', explanation: 'Khói và lửa (fire).' },
+                    { text: '__ got injured.', answer: 'The pilot', explanation: 'Phi công bị thương.' },
+                    { text: 'She feels relieved now because she was __.', answer: 'safe', explanation: 'Cô ấy an toàn (safe).' }
+                ]
+            },
+            {
+                id: 'u2-writing',
+                type: QuestionType.Writing,
+                title: '14. Writing',
+                prompt: 'Viết 3 câu về một tai nạn/thảm họa. Sử dụng thì Quá khứ đơn hoặc Quá khứ tiếp diễn.',
+                explanation: 'Gợi ý: I was [doing something] when [disaster] happened.',
+                prefix: 'Story:',
+                placeholder: '1. I was sleeping when the earthquake happened.\n2. ...',
+                correctAnswer: 'hint used'
+            }
+        ];
+
+        const units = {
+            'unit2': {
+                id: 'unit2',
+                title: 'Unit 2: Disasters & Accidents',
+                icon: '🌋',
+                vocabulary: unit2Vocab,
+                questions: unit2Questions
+            },
+            'unit3': {
+                id: 'unit3',
+                title: 'Unit 3: The Environment',
+                icon: '🌍',
+                vocabulary: unit3Vocab,
+                questions: unit3Questions
+            }
+        };
+
+        // ==========================================
+        // 4. COMPONENTS
+        // ==========================================
+
+        // --- MCQ Renderer ---
+        const MCQRenderer = ({ question, userAnswer, isChecked, onAnswer }) => {
+            const handlePlayAudio = () => playTTS(question.audioText || '');
+
+            if (question.type === QuestionType.ListenWrite) {
+                return (
+                    <div className="flex flex-col items-center space-y-6">
+                        <button onClick={handlePlayAudio} className="px-6 py-3 rounded-full font-bold text-white shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center gap-2 bg-pink-500 hover:bg-pink-600">
+                            🔊 Listen
+                        </button>
+                        <div className="text-2xl font-mono bg-white px-4 py-2 rounded border border-gray-200 shadow-sm text-slate-600">
+                            {question.display}
+                        </div>
+                        <div className="w-full max-w-md">
+                            <input
+                                type="text"
+                                disabled={isChecked}
+                                value={userAnswer || ''}
+                                onChange={(e) => onAnswer(e.target.value)}
+                                placeholder="Type the word here..."
+                                className={`w-full text-center text-xl p-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors ${
+                                    isChecked 
+                                        ? (question.answer.toLowerCase() === (userAnswer || '').toLowerCase().trim() 
+                                            ? 'border-green-500 bg-green-50 text-green-800' 
+                                            : 'border-red-500 bg-red-50 text-red-800')
+                                        : 'border-slate-200'
+                                }`}
+                            />
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="space-y-4">
+                    {question.audioText && (
+                        <div className="flex justify-center mb-6">
+                            <button onClick={handlePlayAudio} className="px-4 py-2 rounded-lg font-semibold text-white shadow transition flex items-center gap-2 bg-pink-500 hover:bg-pink-600">
+                                🔊 Play Audio
+                            </button>
+                        </div>
+                    )}
+                    {question.questionText && (
+                        <div className="text-lg font-medium text-slate-700 bg-slate-100 p-4 rounded-lg">
+                            {question.questionText}
+                        </div>
+                    )}
+                    <div className="grid gap-3">
+                        {question.options.map((opt) => {
+                            const isSelected = userAnswer === opt.value;
+                            const isCorrect = question.answer === opt.value;
+                            let className = "relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center ";
+                            
+                            if (isChecked) {
+                                if (isCorrect) className += "bg-green-100 border-green-500 text-green-900";
+                                else if (isSelected) className += "bg-red-100 border-red-500 text-red-900";
+                                else className += "bg-white border-slate-200 opacity-60";
+                            } else {
+                                if (isSelected) className += "bg-teal-50 border-teal-500 ring-1 ring-teal-500";
+                                else className += "bg-white border-slate-200 hover:border-teal-300 hover:bg-slate-50";
+                            }
+
+                            return (
+                                <div key={opt.value} onClick={() => !isChecked && onAnswer(opt.value)} className={className}>
+                                    <span className="text-lg" dangerouslySetInnerHTML={{ __html: opt.text }} />
+                                    {isChecked && isCorrect && <span className="absolute right-4 text-green-600 text-xl font-bold">✓</span>}
+                                    {isChecked && isSelected && !isCorrect && <span className="absolute right-4 text-red-600 text-xl font-bold">✗</span>}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Match Renderer ---
+        const MatchRenderer = ({ question, userAnswer = {}, isChecked, onAnswer }) => {
+            const [selectedA, setSelectedA] = useState(null);
+            const [shuffledB, setShuffledB] = useState([]);
+
+            useEffect(() => {
+                setShuffledB(question.items.map(i => i.B).sort(() => Math.random() - 0.5));
+            }, [question]);
+
+            const handleSelectA = (a) => {
+                if (isChecked) return;
+                if (selectedA === a) setSelectedA(null);
+                else if (userAnswer[a]) {
+                    const next = { ...userAnswer };
+                    delete next[a];
+                    onAnswer(next);
+                    setSelectedA(a);
+                } else {
+                    setSelectedA(a);
+                }
+            };
+
+            const handleSelectB = (b) => {
+                if (isChecked || !selectedA) return;
+                const next = { ...userAnswer };
+                Object.keys(next).forEach(key => {
+                    if (next[key] === b) delete next[key];
+                });
+                next[selectedA] = b;
+                onAnswer(next);
+                setSelectedA(null);
+            };
+
+            return (
+                <div className="grid grid-cols-2 gap-4 md:gap-8 select-none">
+                    <div className="space-y-3">
+                        <h3 className="font-bold text-center text-teal-700 mb-2">English</h3>
+                        {question.items.map(item => {
+                            const isPaired = !!userAnswer[item.A];
+                            const isSelected = selectedA === item.A;
+                            const matchedB = userAnswer[item.A];
+                            const isCorrect = isChecked && matchedB === item.B;
+                            const isWrong = isChecked && matchedB && matchedB !== item.B;
+
+                            let bgClass = "bg-white border-slate-200";
+                            if (isChecked) {
+                                if (isCorrect) bgClass = "bg-green-100 border-green-500 text-green-900";
+                                else if (isWrong) bgClass = "bg-red-100 border-red-500 text-red-900";
+                            } else {
+                                if (isSelected) bgClass = "bg-yellow-100 border-yellow-500 ring-2 ring-yellow-300";
+                                else if (isPaired) bgClass = "bg-blue-50 border-blue-400";
+                            }
+
+                            return (
+                                <div key={item.A} onClick={() => handleSelectA(item.A)} className={`p-3 md:p-4 rounded-lg border-2 shadow-sm cursor-pointer transition-all ${bgClass}`}>
+                                    <span className="font-semibold">{item.A}</span>
+                                    {isPaired && !isChecked && <div className="text-xs text-blue-600 mt-1 truncate">→ {matchedB}</div>}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div className="space-y-3">
+                        <h3 className="font-bold text-center text-teal-700 mb-2">Vietnamese</h3>
+                        {shuffledB.map((text) => {
+                            const parentA = Object.keys(userAnswer).find(key => userAnswer[key] === text);
+                            const isUsed = !!parentA;
+                            let bgClass = "bg-white border-slate-200 hover:bg-slate-50";
+                            if (isChecked) {
+                                const correctAObj = question.items.find(i => i.B === text);
+                                const userPairCorrect = correctAObj && userAnswer[correctAObj.A] === text;
+                                if (userPairCorrect) bgClass = "bg-green-100 border-green-500";
+                                else if (isUsed) bgClass = "bg-red-100 border-red-500";
+                            } else {
+                                if (isUsed) bgClass = "bg-slate-100 border-slate-300 text-slate-500";
+                                if (selectedA && !isUsed) bgClass = "bg-white border-teal-300 hover:bg-teal-50 cursor-pointer animate-pulse";
+                            }
+                            return (
+                                <div key={text} onClick={() => handleSelectB(text)} className={`p-3 md:p-4 rounded-lg border-2 shadow-sm transition-all ${bgClass} ${!selectedA && !isChecked ? 'cursor-default' : 'cursor-pointer'}`}>
+                                    {text}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Fill Blank Renderer ---
+        const FillBlankRenderer = ({ question, userAnswer = {}, isChecked, onAnswer }) => {
+            const [activeSlot, setActiveSlot] = useState(null);
+
+            const handleWordSelect = (word) => {
+                if (activeSlot === null || isChecked) return;
+                const next = { ...userAnswer };
+                Object.keys(next).forEach(key => {
+                    if (next[Number(key)] === word) delete next[Number(key)];
+                });
+                next[activeSlot] = word;
+                onAnswer(next);
+                setActiveSlot(null);
+            };
+
+            const usedWords = Object.values(userAnswer);
+
+            return (
+                <div className="space-y-6">
+                    <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
+                        <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3">Word Bank</h4>
+                        <div className="flex flex-wrap gap-2">
+                            {question.options.map(opt => {
+                                const isUsed = usedWords.includes(opt);
+                                return (
+                                    <button
+                                        key={opt}
+                                        disabled={isChecked || activeSlot === null}
+                                        onClick={() => handleWordSelect(opt)}
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all transform
+                                            ${isChecked 
+                                                ? 'bg-slate-200 text-slate-500 cursor-default' 
+                                                : activeSlot !== null
+                                                    ? isUsed 
+                                                        ? 'bg-slate-200 text-slate-400 scale-95'
+                                                        : 'bg-teal-600 text-white shadow-md hover:scale-105 hover:bg-teal-700'
+                                                    : 'bg-slate-300 text-slate-600 cursor-not-allowed'
+                                            }
+                                        `}
+                                    >
+                                        {opt}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div className="space-y-3">
+                        {question.questions.map((q, idx) => {
+                            const currentVal = userAnswer[idx];
+                            const isCorrect = isChecked && currentVal === q.answer;
+                            const parts = q.text.split('__');
+                            return (
+                                <div key={idx} className={`p-3 rounded-lg border flex items-start gap-3 ${isChecked ? (isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200') : 'bg-white border-slate-200'}`}>
+                                    <span className="font-mono text-slate-400 mt-1">{idx + 1}.</span>
+                                    <div className="leading-loose text-lg text-slate-800">
+                                        {parts[0]}
+                                        <span
+                                            onClick={() => !isChecked && setActiveSlot(idx)}
+                                            className={`inline-block min-w-[80px] px-2 py-0.5 mx-1 border-b-2 text-center cursor-pointer font-bold transition-colors
+                                                ${isChecked
+                                                    ? isCorrect 
+                                                        ? 'border-green-500 text-green-700' 
+                                                        : 'border-red-500 text-red-700'
+                                                    : activeSlot === idx 
+                                                        ? 'border-teal-500 bg-teal-50 text-teal-800' 
+                                                        : 'border-slate-400 bg-slate-50 hover:bg-slate-100'
+                                                }
+                                            `}
+                                        >
+                                            {currentVal || '____'}
+                                        </span>
+                                        {parts[1]}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Text Entry Renderer ---
+        const TextEntryRenderer = ({ question, userAnswer = '', isChecked, onAnswer }) => {
+            if (question.type === QuestionType.Writing) {
+                return (
+                    <div className="space-y-4">
+                        <textarea
+                            disabled={isChecked}
+                            value={userAnswer}
+                            onChange={(e) => onAnswer(e.target.value)}
+                            rows={6}
+                            placeholder={question.placeholder}
+                            className={`w-full p-4 rounded-xl border-2 focus:ring-2 focus:ring-teal-500 outline-none transition-colors ${isChecked ? 'bg-slate-50 border-slate-300 text-slate-600' : 'bg-white border-slate-200 hover:border-teal-300'}`}
+                        />
+                        <p className="text-sm text-slate-500 italic">Structure suggestion: If + S + V (present), S + will + V (base form)...</p>
+                    </div>
+                );
+            }
+            return (
+                <div className="bg-slate-100 p-6 rounded-xl border border-slate-200">
+                    <h3 className="text-xl font-medium text-slate-800 mb-4">{question.prefix}</h3>
+                    <input
+                        type="text"
+                        disabled={isChecked}
+                        value={userAnswer}
+                        onChange={(e) => onAnswer(e.target.value)}
+                        placeholder={question.placeholder}
+                        className={`w-full p-3 text-lg rounded-lg border-2 focus:ring-2 focus:ring-teal-500 outline-none ${
+                            isChecked
+                                ? userAnswer.toLowerCase().includes(question.correctAnswer.toLowerCase()) 
+                                    ? 'bg-green-50 border-green-500 text-green-900' 
+                                    : 'bg-red-50 border-red-500 text-red-900'
+                                : 'bg-white border-slate-300'
+                        }`}
+                    />
+                </div>
+            );
+        };
+
+        // --- Sentence Scramble Renderer ---
+        const SentenceScrambleRenderer = ({ question, userAnswer, isChecked, onAnswer }) => {
+            const [pool, setPool] = useState([]);
+
+            useEffect(() => {
+                if (!userAnswer || userAnswer.length === 0) {
+                    setPool([...question.segments].sort(() => Math.random() - 0.5));
+                } else {
+                    const currentUsed = [...userAnswer];
+                    const remaining = [...question.segments];
+                    currentUsed.forEach(word => {
+                        const idx = remaining.indexOf(word);
+                        if (idx > -1) remaining.splice(idx, 1);
+                    });
+                    setPool(remaining);
+                }
+            }, [question.id, userAnswer]);
+
+            const handlePlayAudio = () => playTTS(question.audioText || '');
+
+            const moveToAnswer = (word, index) => {
+                if (isChecked) return;
+                const newPool = [...pool];
+                newPool.splice(index, 1);
+                setPool(newPool);
+                const newAnswer = userAnswer ? [...userAnswer, word] : [word];
+                onAnswer(newAnswer);
+            };
+
+            const returnToPool = (word, index) => {
+                if (isChecked) return;
+                const newAnswer = [...userAnswer];
+                newAnswer.splice(index, 1);
+                onAnswer(newAnswer);
+                setPool(prev => [...prev, word]);
+            };
+
+            return (
+                <div className="flex flex-col items-center space-y-8">
+                    <button onClick={handlePlayAudio} className="px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-full font-bold shadow-md transform hover:scale-105 transition flex items-center gap-2">
+                        🔊 Nghe câu mẫu
+                    </button>
+                    <div className="w-full min-h-[80px] p-4 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-wrap gap-2 justify-center items-center relative">
+                        {!userAnswer?.length && <span className="text-slate-400 absolute select-none pointer-events-none">Bấm vào các từ bên dưới để sắp xếp...</span>}
+                        {userAnswer?.map((word, idx) => (
+                            <button key={`${word}-${idx}`} onClick={() => returnToPool(word, idx)} disabled={isChecked} className={`px-4 py-2 bg-white border-2 border-teal-500 text-teal-800 rounded-lg shadow-sm font-medium hover:bg-red-50 hover:border-red-400 transition transform active:scale-95 ${isChecked ? 'cursor-default' : 'cursor-pointer'}`}>
+                                {word}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex flex-wrap gap-3 justify-center">
+                        {pool.map((word, idx) => (
+                            <button key={`${word}-${idx}`} onClick={() => moveToAnswer(word, idx)} disabled={isChecked} className={`px-4 py-2 bg-slate-200 text-slate-700 rounded-lg shadow font-medium hover:bg-teal-100 hover:text-teal-800 transition transform active:scale-95 ${isChecked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                                {word}
+                            </button>
+                        ))}
+                    </div>
+                    {isChecked && (
+                        <div className="text-center mt-2 animate-fadeIn">
+                            <p className="text-slate-500 text-sm">Thứ tự đúng:</p>
+                            <p className="font-bold text-teal-700 text-lg">{question.correctOrder.join(' ')}</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- Question Renderer Dispatcher ---
+        const QuestionRenderer = (props) => {
+            switch (props.question.type) {
+                case QuestionType.Match: return <MatchRenderer {...props} />;
+                case QuestionType.Fill: return <FillBlankRenderer {...props} />;
+                case QuestionType.MCQ:
+                case QuestionType.Listening:
+                case QuestionType.ListenWrite: return <MCQRenderer {...props} />;
+                case QuestionType.ShortAnswer:
+                case QuestionType.Writing: return <TextEntryRenderer {...props} />;
+                case QuestionType.SentenceScramble: return <SentenceScrambleRenderer {...props} />;
+                default: return <div>Unknown Question Type</div>;
+            }
+        };
+
+        // --- Quiz Navigation ---
+        const QuizNavigation = ({ isChecked, hasPrev, hasNext, onPrev, onNext, onCheck, onHint }) => (
+            <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <button onClick={onHint} disabled={isChecked} className="order-3 sm:order-1 text-sm font-semibold text-orange-500 hover:text-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 px-4 py-2 hover:bg-orange-50 rounded-lg transition">
+                    💡 Gợi ý (-1 Điểm)
+                </button>
+                <div className="order-1 sm:order-2 flex gap-3 w-full sm:w-auto">
+                    <button onClick={onPrev} disabled={!hasPrev} className="flex-1 sm:flex-none px-6 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                        ← Quay lại
+                    </button>
+                    {!isChecked ? (
+                        <button onClick={onCheck} className="flex-1 sm:flex-none px-8 py-3 bg-teal-600 text-white font-bold rounded-xl shadow-md hover:bg-teal-700 hover:shadow-lg transform active:scale-95 transition">
+                            Kiểm tra
+                        </button>
+                    ) : (
+                        <button onClick={onNext} className="flex-1 sm:flex-none px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 hover:shadow-lg transform active:scale-95 transition flex items-center justify-center gap-2">
+                            {hasNext ? 'Câu tiếp theo →' : 'Xem kết quả 🏆'}
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+
+        // --- Sidebar ---
+        const QuestionListSidebar = ({ totalQuestions, currentIndex, answers, onSelectQuestion }) => (
+            <div className="bg-white rounded-2xl shadow-lg p-4 h-fit sticky top-4 border border-slate-100">
+                <h3 className="font-bold text-slate-700 mb-4 text-center border-b pb-2">Danh sách câu hỏi</h3>
+                <div className="grid grid-cols-5 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {Array.from({ length: totalQuestions }).map((_, idx) => {
+                        const status = answers[idx];
+                        let btnClass = "w-full aspect-square flex items-center justify-center rounded-lg font-semibold text-sm transition-all duration-200 ";
+                        if (currentIndex === idx) btnClass += "bg-teal-600 text-white ring-2 ring-teal-300 ring-offset-1 scale-105 shadow-md";
+                        else if (status?.isChecked) {
+                            if (status.isCorrect) btnClass += "bg-green-100 text-green-700 border border-green-300 hover:bg-green-200";
+                            else btnClass += "bg-red-100 text-red-700 border border-red-300 hover:bg-red-200";
+                        } else if (status?.value) btnClass += "bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100";
+                        else btnClass += "bg-slate-100 text-slate-500 hover:bg-slate-200";
+                        return <button key={idx} onClick={() => onSelectQuestion(idx)} className={btnClass}>{idx + 1}</button>;
+                    })}
+                </div>
+            </div>
+        );
+
+        // --- Start Screen ---
+        const StartScreen = ({ onStart, unitTitle, unitIcon }) => {
+            const [name, setName] = useState('');
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (name.trim().length >= 2) onStart(name.trim());
+            };
+            return (
+                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+                    <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg w-full transform transition hover:scale-105 duration-300 relative z-20">
+                        <div className="text-6xl mb-6 animate-bounce">{unitIcon}</div>
+                        <h1 className="text-3xl md:text-4xl font-extrabold text-teal-800 mb-4">{unitTitle}</h1>
+                        <p className="text-slate-500 mb-8 text-lg">Kiểm tra từ vựng, nghe và ngữ pháp của bạn.</p>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nhập tên của bạn..." className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 bg-slate-50 text-lg focus:ring-4 focus:ring-teal-100 focus:border-teal-500 outline-none transition" autoFocus />
+                            <button type="submit" disabled={name.trim().length < 2} className="w-full py-4 bg-teal-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition">Bắt đầu làm bài</button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Vocabulary Study ---
+        const VocabularyStudy = ({ vocabList, onFinish }) => (
+            <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden animate-fadeIn">
+                <div className="bg-teal-600 p-6 text-center">
+                    <h2 className="text-3xl font-bold text-white mb-2">Học Từ Vựng 📖</h2>
+                    <p className="text-teal-100">Nghe và đọc to các từ vựng trước khi làm bài tập.</p>
+                </div>
+                <div className="p-6 md:p-8">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b-2 border-slate-200 text-slate-500 text-sm uppercase tracking-wider">
+                                    <th className="py-3 px-4">Nghe</th>
+                                    <th className="py-3 px-4">Từ vựng</th>
+                                    <th className="py-3 px-4">Phiên âm</th>
+                                    <th className="py-3 px-4">Nghĩa tiếng Việt</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {vocabList.map((item, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                        <td className="py-3 px-4">
+                                            <button onClick={() => playTTS(item.word)} className="w-10 h-10 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center hover:bg-pink-200 transition shadow-sm">🔊</button>
+                                        </td>
+                                        <td className="py-3 px-4 text-lg font-bold text-slate-800">{item.word}</td>
+                                        <td className="py-3 px-4 font-mono text-slate-500">{item.ipa}</td>
+                                        <td className="py-3 px-4 text-slate-700">{item.meaning}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="mt-8 text-center">
+                        <button onClick={onFinish} className="px-10 py-4 bg-teal-600 text-white font-bold rounded-xl shadow-lg hover:bg-teal-700 hover:shadow-xl transform transition hover:-translate-y-1 active:scale-95 text-lg">Đã học xong - Bắt đầu làm bài tập ➔</button>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- Result Screen ---
+        const ResultScreen = ({ playerName, answers, totalQuestions, onRestart }) => {
+            let correct = 0;
+            let hintsPenalty = 0;
+            Object.values(answers).forEach((ans) => {
+                if (ans.isCorrect) correct++;
+                if (ans.isHintUsed) hintsPenalty++;
+            });
+            const finalScore = Math.max(0, correct - hintsPenalty);
+
+            return (
+                <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 animate-fadeIn">
+                    <div className="bg-white p-8 md:p-12 rounded-3xl shadow-xl max-w-2xl w-full text-center">
+                        <h2 className="text-3xl font-bold text-slate-800 mb-2">Great Job, {playerName}! 🎉</h2>
+                        <p className="text-slate-500 mb-8">You have completed the Quiz.</p>
+                        <div className="flex justify-center mb-8">
+                            <div className="relative w-40 h-40 flex items-center justify-center rounded-full border-8 border-teal-100 bg-teal-50">
+                                <div className="text-center">
+                                    <span className="block text-4xl font-black text-teal-700">{finalScore}</span>
+                                    <span className="text-sm text-teal-600 font-bold uppercase">Points</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mb-8 max-w-xs mx-auto">
+                            <div className="bg-green-50 p-4 rounded-xl">
+                                <div className="text-2xl font-bold text-green-700">{correct}</div>
+                                <div className="text-xs text-green-600 font-semibold">Correct</div>
+                            </div>
+                            <div className="bg-red-50 p-4 rounded-xl">
+                                <div className="text-2xl font-bold text-red-700">{totalQuestions - correct}</div>
+                                <div className="text-xs text-red-600 font-semibold">Wrong</div>
+                            </div>
+                        </div>
+                        {hintsPenalty > 0 && (
+                            <p className="text-sm text-orange-500 mb-6 bg-orange-50 inline-block px-4 py-2 rounded-lg">⚠️ {hintsPenalty} points deducted for hints.</p>
+                        )}
+                        <button onClick={onRestart} className="px-10 py-4 bg-slate-800 text-white font-bold rounded-xl shadow-lg hover:bg-slate-700 hover:shadow-xl transform transition active:scale-95">Try Again ↺</button>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 5. MAIN APP
+        // ==========================================
+        const App = () => {
+            const [gameState, setGameState] = useState('START'); // START, STUDY, PLAYING, RESULT
+            const [currentUnitId, setCurrentUnitId] = useState('unit2');
+            const [playerName, setPlayerName] = useState('');
+            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+            const [answers, setAnswers] = useState({});
+            const [showUnitSelection, setShowUnitSelection] = useState(false);
+            const [voices, setVoices] = useState([]);
+            const [currentVoiceName, setCurrentVoiceName] = useState('');
+
+            const currentUnit = units[currentUnitId] || units['unit2'];
+            const quizData = currentUnit.questions;
+            const vocabularyList = currentUnit.vocabulary;
+            const currentQuestion = quizData[currentQuestionIndex];
+            const currentAnswerState = answers[currentQuestionIndex];
+            const userAnswerValue = currentAnswerState?.value;
+            const isChecked = currentAnswerState?.isChecked || false;
+
+            useEffect(() => {
+                const loadVoices = () => {
+                    const available = getAvailableVoices();
+                    setVoices(available);
+                    if (available.length > 0) {
+                        const defaultVoice = available.find(v => v.name === 'Google US English') || available[0];
+                        setCurrentVoiceName(defaultVoice.name);
+                        setPreferredVoice(defaultVoice.name);
+                    }
+                };
+                loadVoices();
+                if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                    window.speechSynthesis.onvoiceschanged = loadVoices;
+                }
+            }, []);
+
+            const handleVoiceChange = (e) => {
+                const name = e.target.value;
+                setCurrentVoiceName(name);
+                setPreferredVoice(name);
+                playTTS("Hello");
+            };
+
+            const handleStart = (name) => {
+                setPlayerName(name);
+                setGameState('STUDY');
+                setCurrentQuestionIndex(0);
+                setAnswers({});
+            };
+
+            const handleFinishStudy = () => setGameState('PLAYING');
+            
+            const handleRestart = () => {
+                setGameState('START');
+                setPlayerName('');
+                setAnswers({});
+            };
+
+            const handleUnitChange = (unitId) => {
+                if (unitId === currentUnitId) {
+                    setShowUnitSelection(false);
+                    return;
+                }
+                if (gameState !== 'START') {
+                    if (!window.confirm(`Bạn có chắc muốn đổi sang bài "${units[unitId].title}"? Tiến độ hiện tại sẽ bị mất.`)) return;
+                }
+                setCurrentUnitId(unitId);
+                setCurrentQuestionIndex(0);
+                setAnswers({});
+                setShowUnitSelection(false);
+                if (gameState !== 'START') setGameState('STUDY');
+            };
+
+            const handleAnswerUpdate = (val) => {
+                setAnswers(prev => ({
+                    ...prev,
+                    [currentQuestionIndex]: {
+                        value: val,
+                        isCorrect: false,
+                        isChecked: false,
+                        isHintUsed: prev[currentQuestionIndex]?.isHintUsed || false
+                    }
+                }));
+            };
+
+            const handleCheck = () => {
+                if (!answers[currentQuestionIndex]?.value && currentQuestion.type !== QuestionType.SentenceScramble) return;
+                const val = answers[currentQuestionIndex]?.value;
+                if (currentQuestion.type === QuestionType.SentenceScramble && (!val || val.length === 0)) return;
+
+                let isCorrect = false;
+                switch (currentQuestion.type) {
+                    case QuestionType.Match:
+                        const correctCount = currentQuestion.items.reduce((acc, item) => acc + (val[item.A] === item.B ? 1 : 0), 0);
+                        isCorrect = correctCount === currentQuestion.items.length;
+                        break;
+                    case QuestionType.Fill:
+                        const filledCorrectly = currentQuestion.questions.every((q, idx) => val[idx] === q.answer);
+                        const allFilled = Object.keys(val).length === currentQuestion.questions.length;
+                        isCorrect = filledCorrectly && allFilled;
+                        break;
+                    case QuestionType.ShortAnswer:
+                    case QuestionType.ListenWrite:
+                        isCorrect = val.toLowerCase().trim().includes(currentQuestion.type === QuestionType.ListenWrite ? currentQuestion.answer.toLowerCase() : currentQuestion.correctAnswer.toLowerCase());
+                        break;
+                    case QuestionType.Writing:
+                        isCorrect = val.split(' ').length > 5;
+                        break;
+                    case QuestionType.MCQ:
+                    case QuestionType.Listening:
+                        isCorrect = val === currentQuestion.answer;
+                        break;
+                    case QuestionType.SentenceScramble:
+                        if (val.length !== currentQuestion.correctOrder.length) isCorrect = false;
+                        else isCorrect = val.every((word, index) => word === currentQuestion.correctOrder[index]);
+                        break;
+                }
+
+                setAnswers(prev => ({
+                    ...prev,
+                    [currentQuestionIndex]: { ...prev[currentQuestionIndex], isChecked: true, isCorrect }
+                }));
+
+                if (isCorrect && currentQuestion.type === QuestionType.SentenceScramble && currentQuestion.audioText) {
+                    setTimeout(() => playTTS(currentQuestion.audioText), 500);
+                }
+            };
+
+            const handleNext = () => {
+                if (currentQuestionIndex < quizData.length - 1) setCurrentQuestionIndex(prev => prev + 1);
+                else setGameState('RESULT');
+            };
+
+            const handleHint = () => {
+                if (!window.confirm("Dùng gợi ý sẽ bị trừ 1 điểm. Bạn chắc chắn chứ?")) return;
+                let solvedValue = null;
+                switch (currentQuestion.type) {
+                    case QuestionType.MCQ:
+                    case QuestionType.Listening:
+                    case QuestionType.ListenWrite:
+                        solvedValue = currentQuestion.answer;
+                        break;
+                    case QuestionType.ShortAnswer:
+                        solvedValue = currentQuestion.correctAnswer;
+                        break;
+                    case QuestionType.Match:
+                        const matchSolved = {};
+                        currentQuestion.items.forEach(i => matchSolved[i.A] = i.B);
+                        solvedValue = matchSolved;
+                        break;
+                    case QuestionType.Fill:
+                        const fillSolved = {};
+                        currentQuestion.questions.forEach((q, i) => fillSolved[i] = q.answer);
+                        solvedValue = fillSolved;
+                        break;
+                    case QuestionType.SentenceScramble:
+                        solvedValue = currentQuestion.correctOrder;
+                        break;
+                    case QuestionType.Writing:
+                        solvedValue = "Hint used.";
+                        break;
+                }
+                setAnswers(prev => ({
+                    ...prev,
+                    [currentQuestionIndex]: { value: solvedValue, isChecked: true, isCorrect: true, isHintUsed: true }
+                }));
+            };
+
+            // Views
+            const UnitSelectionModal = () => (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+                        <div className="bg-gradient-to-r from-teal-600 to-blue-600 p-5 flex justify-between items-center">
+                            <h3 className="text-white font-bold text-xl">📚 Chọn Bài Học</h3>
+                            <button onClick={() => setShowUnitSelection(false)} className="text-teal-100 hover:text-white text-3xl">&times;</button>
+                        </div>
+                        <div className="p-4 grid gap-3 max-h-[70vh] overflow-y-auto bg-slate-50">
+                            {Object.values(units).map(u => (
+                                <button key={u.id} onClick={() => handleUnitChange(u.id)} className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left group transition-all ${currentUnitId === u.id ? 'border-teal-500 bg-white shadow-md ring-2 ring-teal-200' : 'border-slate-200 bg-white hover:border-teal-300'}`}>
+                                    <div className="text-3xl p-3 rounded-lg bg-slate-50">{u.icon}</div>
+                                    <div className="flex-1">
+                                        <div className="font-bold text-lg text-slate-800">{u.title}</div>
+                                        <div className="text-sm text-slate-500 mt-1">{u.questions.length} câu hỏi • {u.vocabulary.length} từ vựng</div>
+                                    </div>
+                                    {currentUnitId === u.id && <div className="text-teal-500 font-bold text-xl">✓</div>}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            if (gameState === 'START') {
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-40">
+                            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-teal-200 rounded-full blur-[100px] animate-pulse"></div>
+                            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-200 rounded-full blur-[100px] animate-pulse" style={{animationDelay: '1s'}}></div>
+                        </div>
+                        <div className="w-full max-w-lg mb-8 text-center z-10">
+                            <label className="block text-slate-500 font-bold mb-4 uppercase text-sm tracking-widest">Chọn bài học để bắt đầu</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {Object.values(units).map(u => (
+                                    <button key={u.id} onClick={() => setCurrentUnitId(u.id)} className={`p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${currentUnitId === u.id ? 'border-teal-500 bg-white shadow-xl ring-4 ring-teal-100 scale-105' : 'border-slate-200 bg-white/80 hover:bg-white'}`}>
+                                        <span className="text-5xl">{u.icon}</span>
+                                        <span className="font-bold text-sm text-slate-700">{u.title}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <StartScreen onStart={handleStart} unitTitle={currentUnit.title} unitIcon={currentUnit.icon} />
+                    </div>
+                );
+            }
+
+            if (gameState === 'RESULT') return <ResultScreen playerName={playerName} answers={answers} totalQuestions={quizData.length} onRestart={handleRestart} />;
+
+            return (
+                <div className="min-h-screen py-4 px-4 md:px-8 max-w-7xl mx-auto">
+                    {showUnitSelection && <UnitSelectionModal />}
+                    <header className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b pb-4 bg-slate-50/50 backdrop-blur-sm sticky top-0 z-20 md:relative">
+                        <div className="flex flex-col items-start w-full md:w-auto">
+                            <h1 className="text-xl md:text-2xl font-bold text-teal-800 flex items-center gap-2">
+                                <span className="text-3xl">{currentUnit.icon}</span> 
+                                <span className="truncate">{currentUnit.title}</span>
+                            </h1>
+                            <button onClick={() => setShowUnitSelection(true)} className="text-xs font-bold text-slate-600 bg-white border border-slate-300 px-3 py-1.5 rounded-lg mt-2 hover:bg-slate-50 hover:text-teal-600 transition flex items-center gap-2 shadow-sm">
+                                🔄 Đổi bài học khác
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                            {gameState !== 'STUDY' && (
+                                <button onClick={() => setGameState('STUDY')} className="text-sm font-bold text-teal-700 bg-teal-50 px-3 py-2 rounded-lg border border-teal-200 hover:bg-teal-100 transition shadow-sm flex items-center gap-1">
+                                    📖 <span className="hidden sm:inline">Từ vựng</span>
+                                </button>
+                            )}
+                            {voices.length > 0 && (
+                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm">
+                                    <select id="voice-select" value={currentVoiceName} onChange={handleVoiceChange} className="text-sm text-slate-700 bg-transparent outline-none max-w-[100px] sm:max-w-[150px] truncate cursor-pointer">
+                                        {voices.map(v => <option key={v.name} value={v.name}>{v.name.replace('Google', '').replace('English', '')}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                            <div className="text-sm font-bold text-slate-600 bg-slate-200 px-3 py-2 rounded-full flex items-center gap-1">👤 {playerName}</div>
+                        </div>
+                    </header>
+
+                    {gameState === 'STUDY' ? (
+                        <VocabularyStudy vocabList={vocabularyList} onFinish={handleFinishStudy} />
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                            <main className="md:col-span-9 bg-white rounded-3xl shadow-xl p-6 md:p-10 min-h-[500px] flex flex-col justify-between transition-all relative">
+                                <div>
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div>
+                                            <span className="text-xs font-bold text-teal-600 uppercase tracking-wider bg-teal-50 px-2 py-1 rounded">Câu hỏi {currentQuestionIndex + 1} / {quizData.length}</span>
+                                            <h2 className="text-xl md:text-2xl font-bold text-slate-800 mt-2">{currentQuestion.title}</h2>
+                                        </div>
+                                    </div>
+                                    {currentQuestion.prompt && <p className="text-slate-600 mb-6 italic border-l-4 border-teal-500 pl-4 bg-slate-50 p-2 rounded-r">{currentQuestion.prompt}</p>}
+                                    <QuestionRenderer question={currentQuestion} userAnswer={userAnswerValue} isChecked={isChecked} onAnswer={handleAnswerUpdate} />
+                                    {isChecked && (
+                                        <div className={`mt-6 p-4 rounded-xl border-l-4 ${currentAnswerState?.isHintUsed ? 'bg-yellow-50 border-yellow-500 text-yellow-900' : (currentAnswerState?.isCorrect ? 'bg-green-50 border-green-500 text-green-900' : 'bg-red-50 border-red-500 text-red-900')} animate-fadeIn`}>
+                                            <h3 className="font-bold mb-1">{currentAnswerState?.isHintUsed ? 'Đã dùng gợi ý 💡' : (currentAnswerState?.isCorrect ? 'Chính xác! 🎉' : 'Chưa chính xác 😔')}</h3>
+                                            <p dangerouslySetInnerHTML={{ __html: currentQuestion.explanation }} />
+                                        </div>
+                                    )}
+                                </div>
+                                <QuizNavigation currentIndex={currentQuestionIndex} totalQuestions={quizData.length} isChecked={isChecked} hasPrev={currentQuestionIndex > 0} hasNext={currentQuestionIndex < quizData.length - 1 || isChecked} onPrev={() => setCurrentQuestionIndex(p => p - 1)} onNext={handleNext} onCheck={handleCheck} onHint={handleHint} />
+                            </main>
+                            <aside className="md:col-span-3 order-first md:order-last w-full sticky top-20">
+                                <QuestionListSidebar totalQuestions={quizData.length} currentIndex={currentQuestionIndex} answers={answers} onSelectQuestion={setCurrentQuestionIndex} />
+                            </aside>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 6. RENDER
+        // ==========================================
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
