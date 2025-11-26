@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Quiz - Environment & Disasters</title>
+    <title>English Quiz - Environment & Healthy Lifestyle</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,9 +31,9 @@
 <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
   }
 }
 </script>
@@ -45,9 +45,8 @@
         const { useState, useEffect, useRef, useMemo } = React;
 
         // ==========================================
-        // 1. TYPES & CONSTANTS (Must be first)
+        // 1. TYPES & CONSTANTS
         // ==========================================
-        // Converted from enum to const object to prevent ReferenceErrors in standalone script
         const QuestionType = {
             ListenWrite: 'listen-write',
             Match: 'match',
@@ -103,8 +102,8 @@
         // 3. DATA (UNITS)
         // ==========================================
         
-        // --- UNIT 3 (ENVIRONMENT) ---
-        const unit3Vocab = [
+        // --- UNIT 3 (OLD): THE ENVIRONMENT ---
+        const unit3EnvVocab = [
             { word: 'sea', ipa: '/siː/', meaning: 'biển', example: 'The sea is becoming polluted.' },
             { word: 'rainforests', ipa: '/ˈreɪnfɒrɪsts/', meaning: 'rừng nhiệt đới', example: 'Rainforests are disappearing.' },
             { word: 'rivers', ipa: '/ˈrɪvərz/', meaning: 'sông', example: 'Many rivers dry up in summer.' },
@@ -117,7 +116,7 @@
             { word: 'melt', ipa: '/melt/', meaning: 'tan chảy', example: 'Ice melts when it is hot.' }
         ];
 
-        const unit3Questions = [
+        const unit3EnvQuestions = [
             {
                 id: `u3-vocab-write-1`,
                 type: QuestionType.ListenWrite,
@@ -159,49 +158,9 @@
                 ],
             },
             {
-                id: 'u3-pronun-1',
-                type: QuestionType.MCQ,
-                title: '4. Ngữ âm: Chọn từ có phát âm khác',
-                prompt: 'Chọn từ có phần gạch chân phát âm khác với các từ còn lại (Phân biệt /aɪ/ và /eɪ/).',
-                audioText: 'ice, dry, lake, die',
-                options: [
-                    { text: 'A. <u>i</u>ce', value: 'ice' },
-                    { text: 'B. dr<u>y</u>', value: 'dry' },
-                    { text: 'C. l<u>a</u>ke', value: 'lake' },
-                    { text: 'D. d<u>ie</u>', value: 'die' },
-                ],
-                answer: 'lake',
-                explanation: '<b>Ice, Dry, Die</b> đều chứa nguyên âm đôi <b>/aɪ/</b>. <br><b>Lake</b> chứa nguyên âm đôi <b>/eɪ/</b>. <br>Đáp án là C.',
-            },
-            {
-                id: 'u3-pronun-2',
-                type: QuestionType.MCQ,
-                title: '5. Ngữ âm: Chọn từ có phát âm khác',
-                prompt: 'Chọn từ có phần gạch chân phát âm khác với các từ còn lại.',
-                audioText: 'rain, save, environment, wild',
-                options: [
-                    { text: 'A. r<u>ai</u>n', value: 'rain' },
-                    { text: 'B. s<u>a</u>ve', value: 'save' },
-                    { text: 'C. env<u>i</u>ronment', value: 'environment' },
-                    { text: 'D. w<u>ai</u>t', value: 'wait' },
-                ],
-                answer: 'environment',
-                explanation: '<b>Rain, Save, Wait</b> đều chứa âm <b>/eɪ/</b>. <br><b>Environment</b> chứa âm <b>/aɪ/</b> (ở âm tiết thứ 2). <br>Đáp án là C.',
-            },
-            {
-                id: 'u3-conditional-1',
-                type: QuestionType.ShortAnswer,
-                title: '6. Ngữ pháp: Câu điều kiện loại 1',
-                prompt: 'Viết tiếp vế sau của câu điều kiện (kết quả).',
-                prefix: 'If ice caps melt, ...',
-                placeholder: 'sea levels will rise',
-                correctAnswer: 'rise',
-                explanation: 'Nếu băng tan, mực nước biển sẽ dâng cao. <br>Gợi ý: "sea levels will rise" hoặc "the sea level will rise".',
-            },
-            {
                 id: 'u3-scramble-1',
                 type: QuestionType.SentenceScramble,
-                title: '7. Sắp xếp câu (Nghe và Xếp)',
+                title: '4. Sắp xếp câu (Nghe và Xếp)',
                 prompt: 'Nghe và sắp xếp các từ sau thành câu hoàn chỉnh về bảo vệ môi trường.',
                 audioText: 'If we pollute the rivers fish will die',
                 segments: ['the rivers,', 'If', 'fish', 'will die.', 'we pollute'],
@@ -210,7 +169,7 @@
             }
         ];
 
-        // --- UNIT 2 (DISASTERS) ---
+        // --- UNIT 2: DISASTERS & ACCIDENTS ---
         const unit2Vocab = [
             { word: 'tsunami', ipa: '/tsuːˈnɑːmi/', meaning: 'sóng thần', example: 'A huge tsunami hit the coast.' },
             { word: 'earthquake', ipa: '/ˈɜːθkweɪk/', meaning: 'động đất', example: 'The building shook during the earthquake.' },
@@ -220,7 +179,7 @@
             { word: 'volcanic eruption', ipa: '/vɒlˈkænɪk ɪˈrʌpʃn/', meaning: 'phun trào núi lửa', example: 'The volcanic eruption was terrifying.' },
             { word: 'explosion', ipa: '/ɪkˈspləʊʒn/', meaning: 'vụ nổ', example: 'We heard a loud explosion.' },
             { word: 'shipwreck', ipa: '/ˈʃɪprek/', meaning: 'đắm tàu', example: 'Divers explored the shipwreck.' },
-            { word: 'crash', ipa: '/kræʃ/', meaning: 'vụ va chạm (xe/máy bay)', example: 'There was a car crash on the road.' },
+            { word: 'crash', ipa: '/kræʃ/', meaning: 'vụ va chạm', example: 'There was a car crash on the road.' },
             { word: 'terrified', ipa: '/ˈterɪfaɪd/', meaning: 'khiếp sợ', example: 'She was terrified of the storm.' },
             { word: 'relieved', ipa: '/rɪˈliːvd/', meaning: 'nhẹ nhõm', example: 'I felt relieved when it stopped.' },
             { word: 'worried', ipa: '/ˈwʌrid/', meaning: 'lo lắng', example: 'He is worried about the future.' }
@@ -257,206 +216,9 @@
                 ]
             },
             {
-                id: 'u2-feelings',
-                type: QuestionType.Fill,
-                title: '3. Vocabulary: Feelings',
-                explanation: 'Điền tính từ chỉ cảm xúc phù hợp.',
-                options: ['terrified', 'relieved', 'worried'],
-                questions: [
-                    { text: 'When the earthquake started, she was very __.', answer: 'terrified', explanation: 'Khi động đất xảy ra -> Rất sợ hãi (terrified).' },
-                    { text: 'He was __ after finding out nobody was hurt.', answer: 'relieved', explanation: 'Biết không ai bị thương -> Nhẹ nhõm (relieved).' },
-                    { text: 'They are __ about life after the flood.', answer: 'worried', explanation: 'Về cuộc sống sau lũ -> Lo lắng (worried).' }
-                ]
-            },
-            {
-                id: 'u2-grammar-mcq',
-                type: QuestionType.MCQ,
-                title: '4. Grammar: Choose the correct answer',
-                prompt: 'Chọn từ vựng đúng ngữ cảnh.',
-                audioText: 'landslide, shipwreck, disaster, crash',
-                options: [
-                    { text: 'A. landslide', value: 'landslide' },
-                    { text: 'B. shipwreck', value: 'shipwreck' },
-                ],
-                questionText: '1. It rained heavily before the ______ hit the town.',
-                answer: 'landslide',
-                explanation: 'Mưa lớn thường gây ra sạt lở đất (landslide), không gây ra đắm tàu trên thị trấn.'
-            },
-            {
-                id: 'u2-grammar-mcq-2',
-                type: QuestionType.MCQ,
-                title: '4b. Grammar: Choose the correct answer',
-                prompt: 'Chọn từ vựng đúng ngữ cảnh.',
-                options: [
-                    { text: 'A. crash', value: 'crash' },
-                    { text: 'B. disaster', value: 'disaster' },
-                ],
-                questionText: '2. Jane saw a car ______ this morning.',
-                answer: 'crash',
-                explanation: 'Car crash: Tai nạn xe hơi.'
-            },
-            {
-                id: 'u2-grammar-mcq-3',
-                type: QuestionType.MCQ,
-                title: '4c. Grammar: Choose the correct answer',
-                prompt: 'Chọn từ vựng đúng ngữ cảnh.',
-                options: [
-                    { text: 'A. eruption', value: 'eruption' },
-                    { text: 'B. explosion', value: 'explosion' },
-                ],
-                questionText: '3. The volcanic ______ destroyed the village.',
-                answer: 'eruption',
-                explanation: 'Volcanic eruption: Phun trào núi lửa.'
-            },
-            {
-                id: 'u2-grammar-mcq-4',
-                type: QuestionType.MCQ,
-                title: '4d. Grammar: Choose the correct answer',
-                prompt: 'Chọn từ vựng đúng ngữ cảnh.',
-                options: [
-                    { text: 'A. earthquake', value: 'earthquake' },
-                    { text: 'B. flood', value: 'flood' },
-                ],
-                questionText: '4. The ______ covered the small town in water.',
-                answer: 'flood',
-                explanation: 'Nước bao phủ thị trấn -> Lũ lụt (flood).'
-            },
-             {
-                id: 'u2-grammar-mcq-5',
-                type: QuestionType.MCQ,
-                title: '4e. Grammar: Choose the correct answer',
-                prompt: 'Chọn từ vựng đúng ngữ cảnh.',
-                options: [
-                    { text: 'A. terrified', value: 'terrified' },
-                    { text: 'B. relieved', value: 'relieved' },
-                ],
-                questionText: '5. We were ______ when the building began to shake.',
-                answer: 'terrified',
-                explanation: 'Tòa nhà rung chuyển -> Sợ hãi (terrified).'
-            },
-            {
-                id: 'u2-grammar-verbs',
-                type: QuestionType.Fill,
-                title: '5. Grammar: Fill in verbs',
-                explanation: 'Điền động từ quá khứ phù hợp.',
-                options: ['killed', 'hit', 'destroyed', 'blew', 'overflowed'],
-                questions: [
-                    { text: 'The shipwreck __ three people.', answer: 'killed', explanation: 'Vụ đắm tàu làm thiệt mạng 3 người.' },
-                    { text: 'When did the storm __ the city?', answer: 'hit', explanation: 'Khi nào cơn bão đổ bộ (hit) thành phố?' },
-                    { text: 'The tsunami __ the roads and buildings.', answer: 'destroyed', explanation: 'Sóng thần phá hủy (destroyed) đường xá.' },
-                    { text: 'The wind __ hard before the storm.', answer: 'blew', explanation: 'Gió thổi mạnh (blew).' },
-                    { text: 'The river __ after a week of heavy rain.', answer: 'overflowed', explanation: 'Sông tràn bờ (overflowed).' }
-                ]
-            },
-            {
-                id: 'u2-word-forms',
-                type: QuestionType.Fill,
-                title: '6. Grammar: Word Forms',
-                explanation: 'Chọn dạng từ đúng (Danh từ/Tính từ/Động từ) cho câu.',
-                options: ['destruction', 'injured', 'explosion', 'erupted', 'relieved', 'terrifying', 'worried'],
-                questions: [
-                    { text: 'The __ from the tsunami was terrible. (DESTROY)', answer: 'destruction', explanation: 'Cần danh từ: Destruction (sự phá hủy).' },
-                    { text: 'The police helped the __ people. (INJURE)', answer: 'injured', explanation: 'Cần tính từ: Injured people (người bị thương).' },
-                    { text: 'They heard a loud __ from the building. (EXPLODE)', answer: 'explosion', explanation: 'Cần danh từ: Explosion (vụ nổ).' },
-                    { text: 'Mount Fuji last __ in 1707. (ERUPT)', answer: 'erupted', explanation: 'Cần động từ quá khứ: Erupted (phun trào).' },
-                    { text: 'She felt __ because no one was injured. (RELIEVE)', answer: 'relieved', explanation: 'Cảm thấy nhẹ nhõm: Relieved.' },
-                    { text: 'The news says a __ storm is coming. (TERRIFY)', answer: 'terrifying', explanation: 'Một cơn bão đáng sợ: Terrifying.' },
-                    { text: 'People are __ about their life. (WORRY)', answer: 'worried', explanation: 'Lo lắng: Worried.' }
-                ]
-            },
-            {
-                id: 'u2-past-story',
-                type: QuestionType.Fill,
-                title: '7. Grammar: Past Simple / Past Continuous Story',
-                explanation: 'Hoàn thành câu chuyện ở thì quá khứ.',
-                options: ['started', 'were running', 'fell', 'opened', 'took'],
-                questions: [
-                    { text: 'David was running in the forest when it __ to rain.', answer: 'started', explanation: 'Hành động cắt ngang (bắt đầu mưa) -> Quá khứ đơn.' },
-                    { text: 'He and his dog __ to the car when the lightning struck.', answer: 'were running', explanation: 'Hành động đang diễn ra -> Quá khứ tiếp diễn.' },
-                    { text: 'David __ to the ground.', answer: 'fell', explanation: 'Hành động ngã xuống -> Quá khứ đơn.' },
-                    { text: 'When he __ his eyes...', answer: 'opened', explanation: 'Mở mắt -> Quá khứ đơn.' },
-                    { text: '...the emergency service __ him to the hospital.', answer: 'took', explanation: 'Đưa đến viện -> Quá khứ đơn.' }
-                ]
-            },
-            {
-                id: 'u2-pronun-1',
-                type: QuestionType.MCQ,
-                title: '8. Pronunciation: Odd one out',
-                prompt: 'Chọn từ có phần gạch chân phát âm khác.',
-                audioText: 'holiday, nothing, stop, volcanic',
-                options: [
-                    { text: 'A. h<u>o</u>liday', value: 'holiday' },
-                    { text: 'B. n<u>o</u>thing', value: 'nothing' }, // /ʌ/
-                    { text: 'C. st<u>o</u>p', value: 'stop' },
-                    { text: 'D. v<u>o</u>lcanic', value: 'volcanic' }
-                ],
-                answer: 'nothing',
-                explanation: 'Nothing (/ʌ/) khác với các từ còn lại (/ɒ/).'
-            },
-            {
-                id: 'u2-pronun-2',
-                type: QuestionType.MCQ,
-                title: '9. Pronunciation: Odd one out',
-                prompt: 'Chọn từ có phần gạch chân phát âm khác.',
-                audioText: 'warm, harm, farm, start',
-                options: [
-                    { text: 'A. w<u>a</u>rm', value: 'warm' }, // /ɔː/
-                    { text: 'B. h<u>a</u>rm', value: 'harm' }, // /ɑː/
-                    { text: 'C. f<u>a</u>rm', value: 'farm' }, // /ɑː/
-                    { text: 'D. st<u>a</u>rt', value: 'start' } // /ɑː/
-                ],
-                answer: 'warm',
-                explanation: 'Warm (/ɔː/) khác với các từ còn lại (/ɑː/).'
-            },
-            {
-                id: 'u2-pronun-ed',
-                type: QuestionType.MCQ,
-                title: '10. Pronunciation: -ed endings',
-                prompt: 'Chọn từ có đuôi -ed phát âm khác.',
-                audioText: 'climbed, destroyed, exploded, injured',
-                options: [
-                    { text: 'A. climb<u>ed</u>', value: 'climbed' }, // /d/
-                    { text: 'B. destroy<u>ed</u>', value: 'destroyed' }, // /d/
-                    { text: 'C. explod<u>ed</u>', value: 'exploded' }, // /id/
-                    { text: 'D. injur<u>ed</u>', value: 'injured' } // /d/
-                ],
-                answer: 'exploded',
-                explanation: 'Exploded (/ɪd/) vì kết thúc bằng /d/, các từ còn lại là /d/.'
-            },
-            {
-                id: 'u2-pronun-ed-2',
-                type: QuestionType.MCQ,
-                title: '11. Pronunciation: -ed endings',
-                prompt: 'Chọn từ có đuôi -ed phát âm khác.',
-                audioText: 'screamed, overflowed, cleaned, crashed',
-                options: [
-                    { text: 'A. scream<u>ed</u>', value: 'screamed' }, // /d/
-                    { text: 'B. overflow<u>ed</u>', value: 'overflowed' }, // /d/
-                    { text: 'C. clean<u>ed</u>', value: 'cleaned' }, // /d/
-                    { text: 'D. crash<u>ed</u>', value: 'crashed' } // /t/
-                ],
-                answer: 'crashed',
-                explanation: 'Crashed (/t/) vì kết thúc bằng /ʃ/, các từ còn lại là /d/.'
-            },
-            {
-                id: 'u2-pronun-ed-3',
-                type: QuestionType.MCQ,
-                title: '12. Pronunciation: -ed endings',
-                prompt: 'Chọn từ có đuôi -ed phát âm khác.',
-                audioText: 'walked, watched, stayed, washed',
-                options: [
-                    { text: 'A. walk<u>ed</u>', value: 'walked' }, // /t/
-                    { text: 'B. watch<u>ed</u>', value: 'watched' }, // /t/
-                    { text: 'C. stay<u>ed</u>', value: 'stayed' }, // /d/
-                    { text: 'D. wash<u>ed</u>', value: 'washed' } // /t/
-                ],
-                answer: 'stayed',
-                explanation: 'Stayed (/d/) vì kết thúc bằng nguyên âm, các từ còn lại là /t/.'
-            },
-            {
                 id: 'u2-listening',
                 type: QuestionType.Fill,
-                title: '13. Listening: Gap Fill',
+                title: '3. Listening: Gap Fill',
                 prompt: 'Nghe đoạn hội thoại và điền vào chỗ trống.',
                 audioText: 'I was in the kitchen when I heard a loud noise. It was a plane crash nearby. I looked out and saw smoke and fire everywhere. Luckily, only the pilot got injured. I feel relieved now because I was safe inside.',
                 explanation: 'Nghe kỹ các từ khóa về địa điểm, sự kiện và cảm xúc.',
@@ -468,19 +230,288 @@
                     { text: '__ got injured.', answer: 'The pilot', explanation: 'Phi công bị thương.' },
                     { text: 'She feels relieved now because she was __.', answer: 'safe', explanation: 'Cô ấy an toàn (safe).' }
                 ]
-            },
-            {
-                id: 'u2-writing',
-                type: QuestionType.Writing,
-                title: '14. Writing',
-                prompt: 'Viết 3 câu về một tai nạn/thảm họa. Sử dụng thì Quá khứ đơn hoặc Quá khứ tiếp diễn.',
-                explanation: 'Gợi ý: I was [doing something] when [disaster] happened.',
-                prefix: 'Story:',
-                placeholder: '1. I was sleeping when the earthquake happened.\n2. ...',
-                correctAnswer: 'hint used'
             }
         ];
 
+        // --- UNIT 3 (NEW): HEALTHY LIFESTYLE ---
+        const unit3HealthyVocab = [
+            { word: 'work out', ipa: '/wɜːk aʊt/', meaning: 'tập thể dục/thể thao', example: 'I work out every morning.' },
+            { word: 'workout', ipa: '/ˈwɜːkaʊt/', meaning: 'buổi tập thể dục', example: 'That was a tough workout.' },
+            { word: 'calorie', ipa: '/ˈkæləri/', meaning: 'calo (năng lượng)', example: 'Running burns a lot of calories.' },
+            { word: 'beneficial', ipa: '/ˌbenɪˈfɪʃl/', meaning: 'có lợi, có ích', example: 'Exercise is beneficial for health.' },
+            { word: 'physical health', ipa: '/ˈfɪzɪkl helθ/', meaning: 'sức khỏe thể chất', example: 'Sports improve physical health.' },
+            { word: 'muscle', ipa: '/ˈmʌsl/', meaning: 'cơ bắp', example: 'Weightlifting builds muscle.' },
+            { word: 'mental health', ipa: '/ˈmentl helθ/', meaning: 'sức khỏe tinh thần', example: 'Relaxing is good for mental health.' },
+            { word: 'stress hormone', ipa: '/stres ˈhɔːməʊn/', meaning: 'hoóc-môn căng thẳng', example: 'Exercise reduces stress hormones.' },
+            { word: 'cancer', ipa: '/ˈkænsə(r)/', meaning: 'bệnh ung thư', example: 'Smoking causes cancer.' },
+            { word: 'maintain', ipa: '/meɪnˈteɪn/', meaning: 'duy trì', example: 'Maintain a healthy weight.' },
+            { word: 'worth it', ipa: '/wɜːθ ɪt/', meaning: 'xứng đáng', example: 'It is hard work but worth it.' }
+        ];
+
+        const unit3HealthyQuestions = [
+            {
+                id: 'u3h-match',
+                type: QuestionType.Match,
+                title: '1. Vocabulary: Match words with meaning',
+                description: 'Nối từ tiếng Anh với nghĩa tiếng Việt.',
+                explanation: 'Ôn lại các từ vựng trong phần "Check out the meaning".',
+                items: [
+                    { id: 'A1', A: 'work out', B: 'tập thể dục' },
+                    { id: 'A2', A: 'beneficial', B: 'có lợi, có ích' },
+                    { id: 'A3', A: 'mental health', B: 'sức khỏe tinh thần' },
+                    { id: 'A4', A: 'muscle', B: 'cơ bắp' },
+                    { id: 'A5', A: 'maintain', B: 'duy trì' },
+                    { id: 'A6', A: 'worth it', B: 'xứng đáng' }
+                ]
+            },
+            {
+                id: 'u3h-listen-write-1',
+                type: QuestionType.ListenWrite,
+                title: '2. Listen & Write',
+                prompt: 'Nghe và viết lại từ còn thiếu.',
+                audioText: 'beneficial',
+                display: '/ˌben.ɪˈfɪʃ.əl/',
+                answer: 'beneficial',
+                explanation: 'Beneficial (tính từ): Có lợi.',
+            },
+            {
+                id: 'u3h-listen-write-2',
+                type: QuestionType.ListenWrite,
+                title: '3. Listen & Write',
+                prompt: 'Nghe và viết lại từ còn thiếu.',
+                audioText: 'stress hormone',
+                display: '/ˈstres ˈhɔː.məʊn/',
+                answer: 'stress hormone',
+                explanation: 'Stress hormone: Hoóc-môn căng thẳng.',
+            },
+            {
+                id: 'u3h-reading-mcq-1',
+                type: QuestionType.MCQ,
+                title: '4. Reading: Why Working Out Is Worth It',
+                prompt: 'Đọc câu hỏi và chọn đáp án đúng dựa trên bài đọc.',
+                questionText: '1. Which is NOT mentioned in the text as a benefit of sports and exercise?',
+                audioText: 'We can avoid some diseases. We can get taller. We can become more energetic.',
+                options: [
+                    { text: 'A. We can avoid some diseases.', value: 'A' },
+                    { text: 'B. We can get taller.', value: 'B' },
+                    { text: 'C. We can become more energetic.', value: 'C' }
+                ],
+                answer: 'B',
+                explanation: 'Bài đọc đề cập đến việc ngăn ngừa bệnh tật (avoid diseases) và tăng năng lượng (boost energy), nhưng không nói đến việc cao hơn (get taller).'
+            },
+            {
+                id: 'u3h-reading-mcq-2',
+                type: QuestionType.MCQ,
+                title: '5. Reading: Confidence',
+                prompt: 'Đọc câu hỏi và chọn đáp án đúng.',
+                questionText: '2. According to the text, what can make you feel more confident?',
+                options: [
+                    { text: 'A. reducing stress', value: 'A' },
+                    { text: 'B. having a good appearance', value: 'B' },
+                    { text: 'C. sharing our interests', value: 'C' }
+                ],
+                answer: 'B',
+                explanation: 'Bài đọc nói: "have a good appearance, which can build our confidence" (có ngoại hình đẹp giúp xây dựng sự tự tin).'
+            },
+            {
+                id: 'u3h-reading-mcq-3',
+                type: QuestionType.MCQ,
+                title: '6. Reading: Teenagers',
+                prompt: 'Đọc câu hỏi và chọn đáp án đúng.',
+                questionText: '3. Which is NOT mentioned as a way for teenagers to work out?',
+                options: [
+                    { text: 'A. taking part in a sports competition', value: 'A' },
+                    { text: 'B. joining an after-school sports team', value: 'B' },
+                    { text: 'C. doing exercise at home', value: 'C' }
+                ],
+                answer: 'A',
+                explanation: 'Bài đọc gợi ý: "after-school sports team", "fitness club", "exercise at home". Không đề cập "sports competition".'
+            },
+            {
+                id: 'u3h-true-false',
+                type: QuestionType.MCQ,
+                title: '7. Reading: True or False?',
+                prompt: 'Exercising can bring benefits to our physical health only.',
+                options: [
+                    { text: 'Right (Đúng)', value: 'R' },
+                    { text: 'Wrong (Sai)', value: 'W' },
+                    { text: 'Doesn\'t Say (Không đề cập)', value: 'DS' }
+                ],
+                answer: 'W',
+                explanation: 'Sai (Wrong). Bài đọc nói: "Sports and exercise can also provide great mental health benefits" (cả lợi ích sức khỏe tinh thần).'
+            },
+            {
+                id: 'u3h-fill-capoeira',
+                type: QuestionType.Fill,
+                title: '8. Fill in blanks: Capoeira (Workbook Task 3)',
+                explanation: 'Điền từ thích hợp vào đoạn văn về Capoeira.',
+                options: ['work', 'physical', 'strengthen', 'maintain', 'get', 'mental', 'reduce', 'boost'],
+                questions: [
+                    { text: 'Do you want to __ out?', answer: 'work', explanation: 'Work out: tập thể dục.' },
+                    { text: 'It can improve your __ health.', answer: 'physical', explanation: 'Physical health: sức khỏe thể chất.' },
+                    { text: 'It helps you __ your body.', answer: 'strengthen', explanation: 'Strengthen your body: làm cơ thể khỏe mạnh hơn.' },
+                    { text: 'And __ a healthy weight.', answer: 'maintain', explanation: 'Maintain: duy trì (cân nặng).' }
+                ]
+            },
+             {
+                id: 'u3h-fill-capoeira-2',
+                type: QuestionType.Fill,
+                title: '9. Fill in blanks: Capoeira (Part 2)',
+                explanation: 'Điền từ thích hợp vào đoạn văn về Capoeira.',
+                options: ['get', 'mental', 'reduce', 'boost'],
+                questions: [
+                    { text: 'Capoeira is a great way to __ fit.', answer: 'get', explanation: 'Get fit: trở nên cân đối/khỏe mạnh.' },
+                    { text: 'It is also good for your __ health.', answer: 'mental', explanation: 'Mental health: sức khỏe tinh thần.' },
+                    { text: 'It can __ stress.', answer: 'reduce', explanation: 'Reduce stress: giảm căng thẳng.' },
+                    { text: 'Music helps __ their energy.', answer: 'boost', explanation: 'Boost energy: tăng cường năng lượng.' }
+                ]
+            },
+            {
+                id: 'u3h-scramble-1',
+                type: QuestionType.SentenceScramble,
+                title: '10. Sentence Scramble',
+                prompt: 'Sắp xếp các từ thành câu hoàn chỉnh.',
+                audioText: 'Sports and exercise can improve our physical health',
+                segments: ['improve', 'Sports and exercise', 'our', 'physical health.', 'can'],
+                correctOrder: ['Sports and exercise', 'can', 'improve', 'our', 'physical health.'],
+                explanation: 'Câu chủ đề của bài đọc: Thể thao và tập luyện có thể cải thiện sức khỏe thể chất.',
+            },
+             {
+                id: 'u3h-scramble-2',
+                type: QuestionType.SentenceScramble,
+                title: '11. Sentence Scramble (Extra Practice)',
+                prompt: 'Sắp xếp các từ thành câu hoàn chỉnh.',
+                audioText: 'Staying healthy helps us feel good',
+                segments: ['helps us', 'Staying healthy', 'feel good.', 'because it'],
+                correctOrder: ['Staying healthy', 'helps us', 'feel good.'], 
+                explanation: 'Việc giữ sức khỏe giúp chúng ta cảm thấy tốt hơn.',
+            },
+            // --- NEW SPECIFIC SCRAMBLE QUESTIONS FROM IMAGES ---
+            {
+                id: 'u3h-q1',
+                type: QuestionType.SentenceScramble,
+                title: '12. Question Scramble',
+                prompt: 'Sắp xếp thành câu hỏi hoàn chỉnh.',
+                audioText: 'Do you enjoy playing sports or exercising?',
+                segments: ['Do you', 'playing sports', 'enjoy', 'or exercising?'],
+                correctOrder: ['Do you', 'enjoy', 'playing sports', 'or exercising?'],
+                explanation: 'Bạn có thích chơi thể thao hay tập thể dục không?',
+            },
+            {
+                id: 'u3h-q2',
+                type: QuestionType.SentenceScramble,
+                title: '13. Question Scramble',
+                prompt: 'Sắp xếp thành câu hỏi hoàn chỉnh.',
+                audioText: 'What is your favorite sport or physical activity?',
+                segments: ["What's", 'your', 'favorite sport', 'or physical activity?'],
+                correctOrder: ["What's", 'your', 'favorite sport', 'or physical activity?'],
+                explanation: 'Môn thể thao hoặc hoạt động thể chất yêu thích của bạn là gì?',
+            },
+            {
+                id: 'u3h-q3',
+                type: QuestionType.SentenceScramble,
+                title: '14. Question Scramble',
+                prompt: 'Sắp xếp thành câu hỏi hoàn chỉnh.',
+                audioText: 'How do you feel after exercising or playing sports?',
+                segments: ['How do', 'you feel', 'after', 'exercising', 'or playing sports?'],
+                correctOrder: ['How do', 'you feel', 'after', 'exercising', 'or playing sports?'],
+                explanation: 'Bạn cảm thấy thế nào sau khi tập thể dục hoặc chơi thể thao?',
+            },
+            {
+                id: 'u3h-q4',
+                type: QuestionType.SentenceScramble,
+                title: '15. Question Scramble',
+                prompt: 'Sắp xếp thành câu hỏi hoàn chỉnh.',
+                audioText: 'Do you prefer outdoor or indoor sports and activities?',
+                segments: ['Do you', 'prefer', 'outdoor', 'or indoor', 'sports and activities?'],
+                correctOrder: ['Do you', 'prefer', 'outdoor', 'or indoor', 'sports and activities?'],
+                explanation: 'Bạn thích các hoạt động thể thao trong nhà hay ngoài trời?',
+            },
+            {
+                id: 'u3h-a1',
+                type: QuestionType.SentenceScramble,
+                title: '16. Sentence Scramble',
+                prompt: 'Sắp xếp thành câu hoàn chỉnh.',
+                audioText: 'I really like playing sports and exercising. It is fun and keeps me healthy.',
+                segments: ['I really like', 'playing sports', 'and exercising.', "It's fun", 'and', 'keeps me', 'healthy.'],
+                correctOrder: ['I really like', 'playing sports', 'and exercising.', "It's fun", 'and', 'keeps me', 'healthy.'],
+                explanation: 'Tôi thực sự thích chơi thể thao và tập thể dục. Nó vui và giúp tôi khỏe mạnh.',
+            },
+            {
+                id: 'u3h-a2',
+                type: QuestionType.SentenceScramble,
+                title: '17. Sentence Scramble',
+                prompt: 'Sắp xếp thành câu hoàn chỉnh.',
+                audioText: 'Basketball is my favorite. I love the teamwork and excitement.',
+                segments: ['Basketball', 'is my favorite.', 'I love', 'the teamwork', 'and excitement.'],
+                correctOrder: ['Basketball', 'is my favorite.', 'I love', 'the teamwork', 'and excitement.'],
+                explanation: 'Bóng rổ là môn yêu thích của tôi. Tôi yêu tinh thần đồng đội và sự phấn khích.',
+            },
+            {
+                id: 'u3h-a3',
+                type: QuestionType.SentenceScramble,
+                title: '18. Sentence Scramble',
+                prompt: 'Sắp xếp thành câu hoàn chỉnh.',
+                audioText: 'I feel great! Even if I am tired, after that, I feel energized and proud.',
+                segments: ['I feel great!', "Even if I'm tired,", 'after that,', 'I feel', 'energized', 'and proud.'],
+                correctOrder: ['I feel great!', "Even if I'm tired,", 'after that,', 'I feel', 'energized', 'and proud.'],
+                explanation: 'Tôi cảm thấy tuyệt vời! Ngay cả khi tôi mệt, sau đó tôi cảm thấy tràn đầy năng lượng và tự hào.',
+            },
+            {
+                id: 'u3h-a4',
+                type: QuestionType.SentenceScramble,
+                title: '19. Sentence Scramble',
+                prompt: 'Sắp xếp thành câu hoàn chỉnh.',
+                audioText: 'I like both for different reasons.',
+                segments: ['I like', 'both', 'for', 'different reasons.'],
+                correctOrder: ['I like', 'both', 'for', 'different reasons.'],
+                explanation: 'Tôi thích cả hai vì những lý do khác nhau.',
+            },
+            {
+                id: 'u3h-a5',
+                type: QuestionType.SentenceScramble,
+                title: '20. Sentence Scramble',
+                prompt: 'Sắp xếp thành câu hoàn chỉnh.',
+                audioText: 'Outdoor sports like soccer and hiking let me enjoy nature and fresh air.',
+                segments: ['Outdoor sports', 'like soccer and hiking', 'let me', 'enjoy nature', 'and fresh air.'],
+                correctOrder: ['Outdoor sports', 'like soccer and hiking', 'let me', 'enjoy nature', 'and fresh air.'],
+                explanation: 'Các môn thể thao ngoài trời như bóng đá và đi bộ đường dài cho phép tôi tận hưởng thiên nhiên và không khí trong lành.',
+            },
+            {
+                id: 'u3h-a6',
+                type: QuestionType.SentenceScramble,
+                title: '21. Sentence Scramble',
+                prompt: 'Sắp xếp thành câu hoàn chỉnh.',
+                audioText: 'Indoor sports like basketball and volleyball are great when it is too hot outside.',
+                segments: ['Indoor sports', 'like basketball and volleyball', 'are great', 'when it’s', 'too hot outside.'],
+                correctOrder: ['Indoor sports', 'like basketball and volleyball', 'are great', 'when it’s', 'too hot outside.'],
+                explanation: 'Các môn thể thao trong nhà như bóng rổ và bóng chuyền rất tuyệt khi bên ngoài quá nóng.',
+            },
+            {
+                id: 'u3h-a7',
+                type: QuestionType.SentenceScramble,
+                title: '22. Sentence Scramble',
+                prompt: 'Sắp xếp thành câu hoàn chỉnh.',
+                audioText: 'Playing sports and exercising offers many benefits, but the most important one is staying healthy.',
+                segments: ['Playing sports and exercising', 'offers many benefits,', 'but', 'the most important one', 'is staying healthy.'],
+                correctOrder: ['Playing sports and exercising', 'offers many benefits,', 'but', 'the most important one', 'is staying healthy.'],
+                explanation: 'Chơi thể thao và tập thể dục mang lại nhiều lợi ích, nhưng quan trọng nhất là giữ gìn sức khỏe.',
+            },
+            {
+                id: 'u3h-a8',
+                type: QuestionType.SentenceScramble,
+                title: '23. Sentence Scramble',
+                prompt: 'Sắp xếp thành câu hoàn chỉnh.',
+                audioText: 'When you move your body through sports and exercise, you make your muscles and bones stronger.',
+                segments: ['When you move your body', 'through sports and exercise,', 'you make', 'your muscles and bones', 'stronger.'],
+                correctOrder: ['When you move your body', 'through sports and exercise,', 'you make', 'your muscles and bones', 'stronger.'],
+                explanation: 'Khi bạn vận động cơ thể thông qua thể thao và tập thể dục, bạn làm cho cơ bắp và xương chắc khỏe hơn.',
+            }
+        ];
+
+        // ==========================================
+        // MAIN UNITS CONFIG
+        // ==========================================
         const units = {
             'unit2': {
                 id: 'unit2',
@@ -489,12 +520,19 @@
                 vocabulary: unit2Vocab,
                 questions: unit2Questions
             },
-            'unit3': {
-                id: 'unit3',
-                title: 'Unit 3: The Environment',
+            'unit3_env': {
+                id: 'unit3_env',
+                title: 'Unit 3: The Environment (Old)',
                 icon: '🌍',
-                vocabulary: unit3Vocab,
-                questions: unit3Questions
+                vocabulary: unit3EnvVocab,
+                questions: unit3EnvQuestions
+            },
+            'unit3_healthy': {
+                id: 'unit3_healthy',
+                title: 'Unit 3: Healthy Lifestyle (New)',
+                icon: '🏃',
+                vocabulary: unit3HealthyVocab,
+                questions: unit3HealthyQuestions
             }
         };
 
